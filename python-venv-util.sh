@@ -20,17 +20,18 @@ function in_python_venv() {
     python3 - ${PYTHON_VENV} <<EOF
 import sys
 import os
-expected_python_venv = sys.argv[1]
-current_python_venv = sys.prefix.split("/")[-1]
+from pathlib import PurePath
 if sys.prefix == sys.base_prefix:
-    sys.stdout.write('false')
+    print("false")
 else:
+    expected_python_venv = sys.argv[1]
+    current_python_venv = PurePath(sys.prefix).name
     if current_python_venv == expected_python_venv:
-        sys.stdout.write('true')
+        print("true")
     else:
-        sys.stderr.write(('The script must be run either with Python venv named "{0}" being active'
-        + ' or without any active venv.{1}').format(expected_python_venv, os.linesep))
-        sys.exit(1)
+        sys.exit(("The script must be run either with Python venv named '{expected_python_venv}' being active"
+        + " or without any active venv.{linesep}").format(expected_python_venv =
+        expected_python_venv, linesep = os.linesep))
 EOF
 }
 
