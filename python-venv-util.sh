@@ -29,7 +29,8 @@ else:
     if current_python_venv == expected_python_venv:
         print("true")
     else:
-        sys.exit(("The script must be run either with Python venv named '{expected_python_venv}' being active"
+        sys.exit(("The script must be run either with Python venv named"
+        + " '{expected_python_venv}' being active"
         + " or without any active venv.{linesep}").format(expected_python_venv =
         expected_python_venv, linesep = os.linesep))
 EOF
