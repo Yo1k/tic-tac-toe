@@ -2,7 +2,7 @@
 
 set -eu
 
-declare -r PYTHON_VENV="tic-tac-toe-venv"
+declare -r PYTHON_VENV="ttt-venv"
 
 function create_python_venv() {
     python3 -m venv ${PYTHON_VENV}
