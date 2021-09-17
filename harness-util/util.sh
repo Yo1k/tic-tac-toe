@@ -2,12 +2,11 @@
 
 set -eu
 
-declare -r PYTHON_VENV="ttt-venv"
-
+source ./harness-util/global-util.sh
 function create_python_venv() {
-    python3 -m venv ${PYTHON_VENV}
     IN_PYTHON_VENV=$(in_python_venv)
     if [[ ${IN_PYTHON_VENV} = "false" ]]; then
+        python3 -m venv ./${PYTHON_VENV}
         activate_python_venv;
     fi
     python3 -m pip install -r requirements.txt
@@ -17,17 +16,17 @@ function create_python_venv() {
 }
 
 function in_python_venv() {
-    python3 - ${PYTHON_VENV} <<EOF
+    python3 - ./${PYTHON_VENV} <<EOF
 import sys
 import os
 from pathlib import PurePath
 if sys.prefix == sys.base_prefix:
-    print("false")
+    print("false", end="")
 else:
     expected_python_venv = sys.argv[1]
     current_python_venv = PurePath(sys.prefix).name
     if current_python_venv == expected_python_venv:
-        print("true")
+        print("true", end="")
     else:
         sys.exit(("The script must be run either with Python venv named"
         + " '{expected_python_venv}' being active"
@@ -37,7 +36,7 @@ EOF
 }
 
 function activate_python_venv() {
-    source ${PYTHON_VENV}/bin/activate
+    source ./${PYTHON_VENV}/bin/activate
 }
 
 function deactivate_python_venv() {

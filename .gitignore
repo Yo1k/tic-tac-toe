@@ -1,7 +1,7 @@
 **/.idea/
 *.swp
 *.swo
-ttt-venv/
+ttt-venv*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
