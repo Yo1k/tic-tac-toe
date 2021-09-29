@@ -6,7 +6,7 @@ source ./harness-util/global-util.sh
 function create_python_venv() {
     IN_PYTHON_VENV=$(in_python_venv)
     if [[ ${IN_PYTHON_VENV} = "false" ]]; then
-        python3 -m venv ./${PYTHON_VENV}
+        python3 -m venv "./${PYTHON_VENV}"
         activate_python_venv;
     fi
     python3 -m pip install -r requirements.txt
@@ -16,7 +16,7 @@ function create_python_venv() {
 }
 
 function in_python_venv() {
-    python3 - ./${PYTHON_VENV} <<EOF
+    python3 - "./${PYTHON_VENV}" <<EOF
 import sys
 import os
 from pathlib import PurePath
@@ -36,7 +36,7 @@ EOF
 }
 
 function activate_python_venv() {
-    source ./${PYTHON_VENV}/bin/activate
+    source "./${PYTHON_VENV}/bin/activate"
 }
 
 function deactivate_python_venv() {
