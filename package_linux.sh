@@ -2,8 +2,5 @@
 
 set -eu
 
-declare -r LINUX_OS="linux"
-source ./harness-util/package-util.sh "${LINUX_OS}"
-create_update_package
-installation_python_requirements "${LINUX_PLATFORM}"
-package "${LINUX_OS}"
+source ./harness-util/package-util.sh
+create_dist_pkg "linux" "x86-64" "manylinux2010_x86_64"

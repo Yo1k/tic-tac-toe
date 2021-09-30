@@ -2,8 +2,5 @@
 
 set -eu
 
-declare -r WIN_OS="win"
-source ./harness-util/package-util.sh "${WIN_OS}"
-create_update_package
-installation_python_requirements "${WIN_PLATFORM}"
-package "${WIN_OS}"
+source ./harness-util/package-util.sh
+create_dist_pkg "win" "x86-64" "win_amd64"

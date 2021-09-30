@@ -2,8 +2,5 @@
 
 set -eu
 
-declare -r MAC_OS="mac"
-source ./harness-util/package-util.sh "${MAC_OS}"
-create_update_package
-installation_python_requirements "${MAC_PLATFORM}"
-package "${MAC_OS}"
+source ./harness-util/package-util.sh
+create_dist_pkg "mac" "x86-64" "macosx_10_9_x86_64"
