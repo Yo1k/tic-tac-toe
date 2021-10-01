@@ -3,4 +3,4 @@
 set -eu
 
 source ./harness-util/package-util.sh
-create_dist_pkg "win" "x86-64" "win_amd64"
+create_pkg "macos" "x86-64" "tic-tac-toe.sh" "macosx_10_9_x86_64"

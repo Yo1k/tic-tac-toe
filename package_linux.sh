@@ -3,4 +3,4 @@
 set -eu
 
 source ./harness-util/package-util.sh
-create_dist_pkg "linux" "x86-64" "manylinux2010_x86_64"
+create_pkg "linux" "x86-64" "tic-tac-toe.sh" "manylinux2010_x86_64"
