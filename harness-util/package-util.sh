@@ -11,18 +11,18 @@ function pkg_src_dir() {
     echo "./${BUILD_DIR_NAME}/${APP_NAME}_${1}_${2}"
 }
 
-# See `pkg_src_dir()`
-# ${3} - the application name
+# ${1}, ${2} - see `pkg_src_dir()`
+# ${3} - the application extension
 function copy_code() {
     CODE_DIR="yo1k"
     declare -r PKG_SRC_DIR=$(pkg_src_dir "${1}" "${2}")
     mkdir -p "${PKG_SRC_DIR}"
     rm -rf "${PKG_SRC_DIR:?}/${CODE_DIR}"
     cp -r "./${CODE_DIR}" "${PKG_SRC_DIR}"
-    cp -u "${3}" "${PKG_SRC_DIR}"
+    cp -u "${APP_NAME}.${3}" "${PKG_SRC_DIR}"
 }
 
-# See `pkg_src_dir()`
+# ${1}, ${2} - see `pkg_src_dir()`
 # ${3} - `--platform` passed to `pip install`,
 #     see https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-platform
 function install_python_requirements() {
@@ -35,7 +35,7 @@ function install_python_requirements() {
         --target="${PKG_SRC_DIR}"
 }
 
-# See `pkg_src_dir()`
+# ${1}, ${2} - see `pkg_src_dir()`
 function pack() {
     declare -r PKG_SRC_DIR=$(pkg_src_dir "${1}" "${2}")
     pushd "${PKG_SRC_DIR}"
@@ -43,9 +43,8 @@ function pack() {
     popd
 }
 
-# See `copy_code()`
-# See `install_python_requirements()`
-# See `pack()`
+# ${1}, ${2}, ${3} - see `copy_code()`
+# ${4} - see `install_python_requirements()`
 function create_pkg() {
     copy_code "${1}" "${2}" "${3}"
     install_python_requirements "${1}" "${2}" "${4}"

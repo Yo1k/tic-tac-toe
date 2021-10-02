@@ -2,7 +2,7 @@
 
 set -eu
 
-source ./harness-util/global-util.sh
+source ./harness-util/util.sh
 
 function create_python_venv() {
     IN_PYTHON_VENV=$(in_python_venv)
