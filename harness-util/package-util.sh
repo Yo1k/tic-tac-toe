@@ -12,14 +12,14 @@ function pkg_src_dir() {
 }
 
 # ${1}, ${2} - see `pkg_src_dir()`
-# ${3} - the application extension
+# ${3} - the extension of the application launcher
 function copy_code() {
     CODE_DIR="yo1k"
     declare -r PKG_SRC_DIR=$(pkg_src_dir "${1}" "${2}")
     mkdir -p "${PKG_SRC_DIR}"
     rm -rf "${PKG_SRC_DIR:?}/${CODE_DIR}"
     cp -r "./${CODE_DIR}" "${PKG_SRC_DIR}"
-    cp -u "${APP_NAME}.${3}" "${PKG_SRC_DIR}"
+    cp -u "${3}" "${PKG_SRC_DIR}"
 }
 
 # ${1}, ${2} - see `pkg_src_dir()`

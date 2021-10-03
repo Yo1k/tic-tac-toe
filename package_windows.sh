@@ -3,4 +3,4 @@
 set -eu
 
 source ./harness-util/package-util.sh
-create_pkg "windows" "x86-64" "ps1" "win_amd64"
+create_pkg "windows" "x86-64" "${APP_NAME}.cmd" "win_amd64"
