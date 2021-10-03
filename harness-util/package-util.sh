@@ -12,7 +12,7 @@ function pkg_src_dir() {
 }
 
 # ${1}, ${2} - see `pkg_src_dir()`
-# ${3} - the extension of the application launcher
+# ${3} - the application launcher name
 function copy_code() {
     CODE_DIR="yo1k"
     declare -r PKG_SRC_DIR=$(pkg_src_dir "${1}" "${2}")
