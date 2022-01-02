@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Runs the Python app on Linux or macOS.
 
 set -eu
 

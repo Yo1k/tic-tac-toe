@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Updates `requirements.txt`, that stores all Python project's dependencies.
 
 set -eu
 

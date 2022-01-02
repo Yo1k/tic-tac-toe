@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Creates Python virtual environment and has utils to activate and deactivate it.
 
 set -eu
 

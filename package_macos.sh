@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Packages the Python app with all its dependencies for macOS x86-64 platform.
 
 set -eu
 
