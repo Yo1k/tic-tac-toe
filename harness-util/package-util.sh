@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Consists of functions to package the Python app with all its dependencies for the chosen
-# platform and a function to clean build directory.
+# Contains utils related to packaging of the application.
 
 set -eu
 
@@ -54,6 +53,6 @@ function create_pkg() {
     pack "${1}" "${2}"
 }
 
-function clean_build(){
+function clean_build_dir() {
     rm -r ./"${BUILD_DIR}"
 }

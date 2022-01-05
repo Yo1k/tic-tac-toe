@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Updates `requirements.txt`, that stores all Python project's dependencies.
+# Updates all Python dependencies of the project in `requirements.txt` based on the project's
+# Python virtual environment.
+# In order to add a new dependency / upgrade the existing dependency:
+# - install / upgrade the dependency in the project's Python virtual environment;
+# - run this script.
 
 set -eu
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs all unit tests of the Python app.
+# Runs all tests.
 
 set -eu
 

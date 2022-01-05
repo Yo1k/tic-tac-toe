@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cleans the build directory, that consists of Python app packages for different platforms.
+# Cleans the build directory.
 
 set -eu
 
