@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Contains Python-specific utils.
+# For example, functions for managing Python virtual environment.
 
 set -eu
 

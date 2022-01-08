@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Packages the application with all its dependencies for Linux x86-64 platform.
 
 set -eu
 

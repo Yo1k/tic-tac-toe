@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# An application launcher for Bash.
 
 set -eu
 
