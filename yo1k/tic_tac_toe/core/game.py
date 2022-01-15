@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, auto
 from collections.abc import Sequence
 from typing import Optional
@@ -26,13 +27,14 @@ class Player:
         self.__wins = wins
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"mark={self.__mark}," \
-               f"wins={self.__wins})"
+        return (
+            f"{type(self)}("
+            f"mark={self.__mark},"
+            f"wins={self.__wins})")
 
 
 class Phase(Enum):
-    ONSET = auto()
+    BEGINNING = auto()
     INROUND = auto()
     OUTROUND = auto()
 
@@ -55,9 +57,10 @@ class Cell:
         return self.__y
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"x={self.__x}," \
-               f"y={self.__y})"
+        return (
+            f"{type(self)}("
+            f"x={self.__x},"
+            f"y={self.__y})")
 
 
 class Board:
@@ -86,56 +89,60 @@ class Board:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"cells={self.__cells},"
+        return (
+            f"{type(self)}("
+            f"cells={self.__cells},")
 
 
 class State:
-    """Full game state which is enough to restore a paused game."""
+    """Full game state which is enough to restore a saved game."""
 
     def __init__(self,
                  game_rounds: int,
                  players: Sequence[Player],
                  board: Board,
-                 phase=Phase.ONSET,
-                 cur_round: int = 0,
+                 phase=Phase.BEGINNING,
+                 round_: int = 0,
                  step: int = 0):
         self.game_rounds = game_rounds
-        self.round = cur_round
+        self.round = round_
+        assert len(players) == 2, f"{players}"
         self.players = players
         self.step = step
         self.phase = phase
         self.board = board
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"game_rounds={self.game_rounds}," \
-               f"round={self.round}," \
-               f"players={self.players}," \
-               f"step={self.step}," \
-               f"phase={self.phase}," \
-               f"board={self.board})"
+        return (
+            f"{type(self)}("
+            f"game_rounds={self.game_rounds},"
+            f"round={self.round},"
+            f"players={self.players},"
+            f"step={self.step},"
+            f"phase={self.phase},"
+            f"board={self.board})")
 
 
 class Action:
     def __init__(self, surrender: bool, occupy: Optional[Cell], next_round: bool):
         assert (surrender is True and occupy is None and next_round is False) or \
                (surrender is False and occupy is not None and next_round is False) or \
-               (surrender is False and occupy is None and next_round is True)
+               (surrender is False and occupy is None and next_round is True), (
+            f"surrender={surrender}, occupy={occupy}, next_round={next_round}")
         self.__surrender = surrender
         self.__occupy = occupy
         self.__start = next_round
 
     @staticmethod
-    def new_surrender() -> "Action":
+    def new_surrender() -> Action:
         return Action(True, None, False)
 
     @staticmethod
-    def new_occupy(occupy: Cell) -> "Action":
-        return Action(False, occupy, False)
+    def new_occupy(cell: Cell) -> Action:
+        return Action(False, cell, False)
 
     @staticmethod
-    def new_start():
+    def new_start() -> Action:
         return Action(False, None, True)
 
     @property
@@ -154,7 +161,7 @@ class Action:
         if self.__surrender is True:
             action = "surrender"
         elif self.__occupy is not None:
-            action = f"new_occupy={self.__occupy}"
+            action = f"occupy={self.__occupy}"
         elif self.__start is True:
             action = "start"
         else:
@@ -174,6 +181,7 @@ class Logic:
 
     def __init__(self, action_queues: Sequence[ActionQueue]):
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
+        assert len(action_queues) == 2, f"{action_queues}"
         self.__action_queues = action_queues
 
     def advance(self, state: State):
@@ -182,13 +190,10 @@ class Logic:
         if action is None:
             return None
         elif action.start is True:
-            assert state.phase is Phase.ONSET or state.phase is Phase.OUTROUND
             Logic.__start(state)
         elif action.surrender is True:
-            assert state.phase is Phase.INROUND
             Logic.__surrender(state)
         elif action.occupy is not None:
-            assert state.phase is Phase.INROUND
             Logic.__occupy(state, action.occupy)
         else:
             assert False
@@ -198,62 +203,57 @@ class Logic:
         """Returns `turn` - the index of the current `Player` in `State.players`.
 
         `turn` is calculated in such a way as to alternate players order in different
-        `round` keeping the same `Player` index in the `State.players`.
+        `round` while keeping the same `Player` index in the `State.players`.
         """
         return (state.step + state.round) % 2
 
     @staticmethod
     def __occupy(state: State, cell: Cell):
+        assert state.phase is Phase.INROUND
         turn = Logic.__turn(state)
         mark = state.players[turn].mark()
         if state.board._get(cell) is None:
             state.board._set(cell, mark)
         else:
-            pass
+            assert False
         if Logic._win_condition(state.board, cell):
             Logic.__win(state)
-        elif Logic._draw_condition(state.step):
+        elif Logic.__last_step(state.step):
             Logic.__draw(state)
         else:
             state.step += 1
 
     @staticmethod
-    def _win_condition(board: Board, cell: Cell) -> bool:
-        win_condition = False
-        horizontal_match_number = 0
-        vertical_match_number = 0
-        first_diagonal_match_number = 0
-        second_diagonal_match_number = 0
-        x = cell.x
-        y = cell.y
-        mark = board._get(Cell(x, y))
+    def _win_condition(board: Board, last_occupied: Cell) -> bool:
+        h_match = 0
+        v_match = 0
+        d1_match = 0
+        d2_match = 0
+        x = last_occupied.x
+        y = last_occupied.y
+        mark = board._get(last_occupied)
         for i in range(Board.size()):
             if board._get(Cell(i, y)) == mark:
-                horizontal_match_number += 1
+                h_match += 1
             if board._get(Cell(x, i)) == mark:
-                vertical_match_number += 1
+                v_match += 1
             if board._get((Cell(i, i))) == mark:
-                first_diagonal_match_number += 1
+                d1_match += 1
             if board._get(Cell(i, Board.size() - 1 - i)) == mark:
-                second_diagonal_match_number += 1
-        if horizontal_match_number == Board.size() or \
-           vertical_match_number == Board.size() or \
-           first_diagonal_match_number == Board.size() or \
-           second_diagonal_match_number == Board.size():
-            win_condition = True
-        return win_condition
+                d2_match += 1
+        return (
+            h_match == Board.size() or v_match == Board.size() or
+            d1_match == Board.size() or d2_match == Board.size())
 
     @staticmethod
-    def _draw_condition(step: int) -> bool:
-        draw_condition = False
-        if step == Board.size() ** 2 - 1:
-            draw_condition = True
-        return draw_condition
+    def __last_step(step: int) -> bool:
+        return step == Board.size() ** 2 - 1
 
     @staticmethod
     def __surrender(state: State):
-        index_other_player = (Logic.__turn(state) + 1) % 2
-        state.players[index_other_player].wins += 1
+        assert state.phase is Phase.INROUND
+        idx_other_player = (Logic.__turn(state) + 1) % 2
+        state.players[idx_other_player].wins += 1
         state.phase = Phase.OUTROUND
 
     @staticmethod
@@ -267,19 +267,21 @@ class Logic:
 
     @staticmethod
     def __start(state: State):
+        assert state.phase is Phase.BEGINNING or state.phase is Phase.OUTROUND
         if state.phase is Phase.OUTROUND:
             state.round += 1
             state.step = 0
             state.board._clean()
-        elif state.phase is Phase.ONSET:
+        elif state.phase is Phase.BEGINNING:
             pass
         else:
             assert False
         state.phase = Phase.INROUND
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"action_queues={self.__action_queues})"
+        return (
+            f"{type(self)}("
+            f"action_queues={self.__action_queues})")
 
 
 class World:
@@ -287,10 +289,11 @@ class World:
         self.__state = state
         self.__logic = logic
 
-    def run(self):  # SKTODO make method
-        pass
+    def advance(self):
+        self.__logic.advance(self.__state)
 
     def __str__(self):
-        return f"{type(self)}(" \
-               f"state={self.__state}," \
-               f"logic={self.__logic})"
+        return (
+            f"{type(self)}("
+            f"state={self.__state},"
+            f"logic={self.__logic})")
