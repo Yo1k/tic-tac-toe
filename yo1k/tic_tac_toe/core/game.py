@@ -17,9 +17,9 @@ class Player:
 
     def __str__(self):
         return (
-            f"{type(self)}("
-            f"mark={self.mark},"
-            f"wins={self.wins})")
+                f"{type(self)}("
+                f"mark={self.mark},"
+                f"wins={self.wins})")
 
 
 class Phase(Enum):
@@ -39,9 +39,9 @@ class Cell:
 
     def __str__(self):
         return (
-            f"{type(self)}("
-            f"x={self.x},"
-            f"y={self.y})")
+                f"{type(self)}("
+                f"x={self.x},"
+                f"y={self.y})")
 
 
 class Board:
@@ -67,20 +67,21 @@ class Board:
 
     def __str__(self):
         return (
-            f"{type(self)}("
-            f"cells={self.cells},")
+                f"{type(self)}("
+                f"cells={self.cells},")
 
 
 class State:
     """Full game state which is enough to restore a saved game."""
 
-    def __init__(self,
-                 game_rounds: int,
-                 players: Sequence[Player],
-                 board: Board,
-                 phase=Phase.BEGINNING,
-                 round_: int = 0,
-                 step: int = 0):
+    def __init__(
+            self,
+            game_rounds: int,
+            players: Sequence[Player],
+            board: Board,
+            phase=Phase.BEGINNING,
+            round_: int = 0,
+            step: int = 0):
         self.game_rounds = game_rounds
         self.round = round_
         assert len(players) == State.players_count(), f"{players}"
@@ -114,10 +115,11 @@ class State:
 
 class Action:
     def __init__(self, surrender: bool, occupy: Optional[Cell], next_round: bool):
-        assert (surrender is True and occupy is None and next_round is False) \
-               or (surrender is False and occupy is not None and next_round is False) \
-               or (surrender is False and occupy is None and next_round is True), \
-               f"surrender={surrender}, occupy={occupy}, next_round={next_round}"
+        assert \
+            (surrender is True and occupy is None and next_round is False) \
+            or (surrender is False and occupy is not None and next_round is False) \
+            or (surrender is False and occupy is None and next_round is True), \
+            f"surrender={surrender}, occupy={occupy}, next_round={next_round}"
         self.__surrender = surrender
         self.__occupy = occupy
         self.__start = next_round
@@ -155,8 +157,9 @@ class Action:
             action = "start"
         else:
             assert False
-        return f"{type(self)}(" \
-               f"{action})"
+        return (
+                f"{type(self)}("
+                f"{action})")
 
 
 class ActionQueue(ABC):
@@ -222,8 +225,8 @@ class Logic:
             if board.get(Cell(i, Board.size() - 1 - i)) == mark:
                 d2_match += 1
         return (
-            h_match == Board.size() or v_match == Board.size() or
-            d1_match == Board.size() or d2_match == Board.size())
+                h_match == Board.size() or v_match == Board.size()
+                or d1_match == Board.size() or d2_match == Board.size())
 
     @staticmethod
     def __last_step(step: int) -> bool:
@@ -260,8 +263,8 @@ class Logic:
 
     def __str__(self):
         return (
-            f"{type(self)}("
-            f"action_queues={self.__action_queues})")
+                f"{type(self)}("
+                f"action_queues={self.__action_queues})")
 
 
 class World:
@@ -274,6 +277,6 @@ class World:
 
     def __str__(self):
         return (
-            f"{type(self)}("
-            f"state={self.__state},"
-            f"logic={self.__logic})")
+                f"{type(self)}("
+                f"state={self.__state},"
+                f"logic={self.__logic})")
