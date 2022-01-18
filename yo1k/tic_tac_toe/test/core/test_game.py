@@ -28,17 +28,17 @@ class ListActionQueue(ActionQueue):
 
 def _new_state(
         game_rounds=5,
-        player1=None,
-        player2=None,
+        player_x=None,
+        player_o=None,
         board=None,
         phase=Phase.INROUND,
         round_=0,
         step=0) -> State:
-    player1 = Player(Mark.X) if player1 is None else player1
-    player2 = Player(Mark.O) if player2 is None else player2
+    player_x = Player(Mark.X) if player_x is None else player_x
+    player_o = Player(Mark.O) if player_o is None else player_o
     board = Board() if board is None else board
     return State(
-            game_rounds=game_rounds, players=[player1, player2], board=board, phase=phase,
+            game_rounds=game_rounds, players=[player_x, player_o], board=board, phase=phase,
             round_=round_, step=step)
 
 
@@ -66,22 +66,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([None])]).advance(state)
-        expected_board_cell = [
-                [None, None, None], [None, None, Mark.X], [None, None, None]]
-        self.assertEqual(state.board.cells, expected_board_cell)
-        self.assertEqual(state.step, 1)
-        self.assertEqual(state.round, 0)
-        self.assertEqual(state.phase, Phase.INROUND)
-        self.assertEqual(state.players[0].wins, 0)
-        self.assertEqual(state.players[1].wins, 0)
-
-    def test_advance__occupy_invalid_action(self):
-        state = _new_state(board=Board([
-                [None, None, None], [None, None, Mark.X], [None, None, None]]))
-        Logic([
-                ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cell = [
                 [None, None, None], [None, None, Mark.X], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cell)
@@ -95,7 +81,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         Logic([
                 ListActionQueue([Action.new_surrender()]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cells = [
                 [None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
@@ -131,9 +118,8 @@ class LogicSingleActionTest(unittest.TestCase):
                  Cell(0, 1), False),
                 ([[Mark.X, Mark.O, Mark.X], [None, None, None], [None, None, None]],
                  Cell(0, 2), False)]
-        for args_and_expect in args_and_expect_list:
-            cells, cell, expect = args_and_expect
-            actual = Logic.win_condition(Board(cells), cell)
+        for cells, cell, expect in args_and_expect_list:
+            actual = Logic._win_condition(Board(cells), cell)
             with self.subTest(expect=expect, cells=cells):
                 self.assertEqual(actual, expect)
 
@@ -144,7 +130,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=4)
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cells = [
                 [Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, Mark.X]]
         self.assertEqual(state.board.cells, expected_board_cells)
@@ -163,7 +150,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=8)
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cells = [
                 [Mark.O, Mark.X, Mark.O],
                 [Mark.O, Mark.X, Mark.X],
@@ -177,7 +165,7 @@ class LogicSingleActionTest(unittest.TestCase):
 
     def test_advance__start_action__outround(self):
         state = _new_state(
-                player1=_new_player(Mark.X, 1),
+                player_x=_new_player(Mark.X, 1),
                 board=Board([
                         [Mark.X, Mark.O, Mark.X],
                         [None, Mark.X, Mark.O],
@@ -185,7 +173,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 phase=Phase.OUTROUND, step=6)
         Logic([
                 ListActionQueue([Action.new_start()]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cells = [[None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 0)
@@ -198,7 +187,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state(phase=Phase.BEGINNING)
         Logic([
                 ListActionQueue([Action.new_start()]),
-                ListActionQueue([None])]).advance(state)
+                ListActionQueue([None])])\
+                .advance(state)
         expected_board_cells = [[None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 0)
@@ -227,8 +217,9 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 [Mark.X, Mark.O, Mark.X],
                 [None, Mark.X, Mark.O],
                 [Mark.X, None, Mark.O]]
+        logic = Logic([act_queue_px, act_queue_po])
         for i in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
-            Logic([act_queue_px, act_queue_po]).advance(state)
+            logic.advance(state)
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 6)
         self.assertEqual(state.round, 0)
@@ -253,8 +244,9 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 [Mark.X, Mark.O, Mark.X],
                 [Mark.X, Mark.O, Mark.O],
                 [Mark.O, Mark.X, Mark.O]]
+        logic = Logic([act_queue_px, act_queue_po])
         for i in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
-            Logic([act_queue_px, act_queue_po]).advance(state)
+            logic.advance(state)
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 8)
         self.assertEqual(state.round, 1)

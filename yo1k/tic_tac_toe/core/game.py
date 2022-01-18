@@ -16,8 +16,7 @@ class Player:
         self.wins = 0
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"mark={self.mark},"
                 f"wins={self.wins})")
 
@@ -38,15 +37,14 @@ class Cell:
         self.y = y
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"x={self.x},"
                 f"y={self.y})")
 
 
 class Board:
     def __init__(self, cells: Sequence[list[Optional[Mark]]] = None):
-        self.cells = Board.empty_cells() if cells is None else cells
+        self.cells = Board.__empty_cells() if cells is None else cells
 
     def set(self, cell: Cell, mark: Mark):
         self.cells[cell.x][cell.y] = mark
@@ -55,19 +53,18 @@ class Board:
         return self.cells[cell.x][cell.y]
 
     def clean(self):
-        self.cells = Board.empty_cells()
+        self.cells = Board.__empty_cells()
 
     @staticmethod
     def size() -> int:
         return 3
 
     @staticmethod
-    def empty_cells() -> list[list[Optional[Mark]]]:
+    def __empty_cells() -> list[list[Optional[Mark]]]:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"cells={self.cells},")
 
 
@@ -103,8 +100,7 @@ class State:
         return 2
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"game_rounds={self.game_rounds},"
                 f"round={self.round},"
                 f"players={self.players},"
@@ -137,15 +133,15 @@ class Action:
         return Action(False, None, True)
 
     @property
-    def surrender(self):
+    def surrender(self) -> bool:
         return self.__surrender
 
     @property
-    def occupy(self):
+    def occupy(self) -> Cell:
         return self.__occupy
 
     @property
-    def start(self):
+    def start(self) -> bool:
         return self.__start
 
     def __str__(self):
@@ -157,8 +153,7 @@ class Action:
             action = "start"
         else:
             assert False
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"{action})")
 
 
@@ -177,8 +172,7 @@ class Logic:
         self.__action_queues = action_queues
 
     def advance(self, state: State):
-        turn = state.turn()
-        action = self.__action_queues[turn].next()
+        action = self.__action_queues[state.turn()].next()
         if action is None:
             return None
         elif action.start is True:
@@ -193,13 +187,12 @@ class Logic:
     @staticmethod
     def __occupy(state: State, cell: Cell):
         assert state.phase is Phase.INROUND
-        turn = state.turn()
-        mark = state.players[turn].mark
+        mark = state.players[state.turn()].mark
         if state.board.get(cell) is None:
             state.board.set(cell, mark)
         else:
             assert False
-        if Logic.win_condition(state.board, cell):
+        if Logic._win_condition(state.board, cell):
             Logic.__win(state)
         elif Logic.__last_step(state.step):
             Logic.__draw(state)
@@ -207,7 +200,7 @@ class Logic:
             state.step += 1
 
     @staticmethod
-    def win_condition(board: Board, last_occupied: Cell) -> bool:
+    def _win_condition(board: Board, last_occupied: Cell) -> bool:
         h_match = 0
         v_match = 0
         d1_match = 0
@@ -224,8 +217,7 @@ class Logic:
                 d1_match += 1
             if board.get(Cell(i, Board.size() - 1 - i)) == mark:
                 d2_match += 1
-        return (
-                h_match == Board.size() or v_match == Board.size()
+        return (h_match == Board.size() or v_match == Board.size()
                 or d1_match == Board.size() or d2_match == Board.size())
 
     @staticmethod
@@ -262,8 +254,7 @@ class Logic:
         state.phase = Phase.INROUND
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"action_queues={self.__action_queues})")
 
 
@@ -276,7 +267,6 @@ class World:
         self.__logic.advance(self.__state)
 
     def __str__(self):
-        return (
-                f"{type(self)}("
+        return (f"{type(self)}("
                 f"state={self.__state},"
                 f"logic={self.__logic})")
