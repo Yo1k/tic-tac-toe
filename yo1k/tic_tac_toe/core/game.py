@@ -15,8 +15,8 @@ class Player:
         self.mark = mark
         self.wins = 0
 
-    def __str__(self):
-        return (f"{type(self)}("
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"mark={self.mark},"
                 f"wins={self.wins})")
 
@@ -31,20 +31,21 @@ class Cell:
     """A game board cell."""
 
     def __init__(self, x: int, y: int):
-        assert 0 <= x < Board.size(), f"{x}"
-        assert 0 <= y < Board.size(), f"{y}"
+        assert 0 <= x < Board.size(), f"{x}, {Board.size()}"
+        assert 0 <= y < Board.size(), f"{y}, {Board.size()}"
         self.x = x
         self.y = y
 
-    def __str__(self):
-        return (f"{type(self)}("
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"x={self.x},"
                 f"y={self.y})")
 
 
 class Board:
-    def __init__(self, cells: Sequence[list[Optional[Mark]]] = None):
+    def __init__(self, cells: Optional[Sequence[list[Optional[Mark]]]] = None):
         self.cells = Board.__empty_cells() if cells is None else cells
+        Board.assert_board(self.cells)
 
     def set(self, cell: Cell, mark: Mark):
         self.cells[cell.x][cell.y] = mark
@@ -63,8 +64,18 @@ class Board:
     def __empty_cells() -> list[list[Optional[Mark]]]:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
-    def __str__(self):
-        return (f"{type(self)}("
+    @staticmethod
+    def assert_board(cells: Optional[Sequence[list[Optional[Mark]]]], expected=None):
+        expected = Board.size() if expected is None else expected
+        if cells is None:
+            pass
+        else:
+            assert len(cells) == expected, f"{len(cells)}, {expected}"
+            for row in cells:
+                assert len(row) == expected, f"{len(row)}, {expected}"
+
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"cells={self.cells},")
 
 
@@ -81,7 +92,7 @@ class State:
             step: int = 0):
         self.game_rounds = game_rounds
         self.round = round_
-        assert len(players) == State.players_count(), f"{players}"
+        assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
         self.players = players
         self.step = step
         self.phase = phase
@@ -96,11 +107,11 @@ class State:
         return (self.step + self.round) % 2
 
     @staticmethod
-    def players_count() -> int:
+    def player_count() -> int:
         return 2
 
-    def __str__(self):
-        return (f"{type(self)}("
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"game_rounds={self.game_rounds},"
                 f"round={self.round},"
                 f"players={self.players},"
@@ -111,11 +122,10 @@ class State:
 
 class Action:
     def __init__(self, surrender: bool, occupy: Optional[Cell], next_round: bool):
-        assert \
-            (surrender is True and occupy is None and next_round is False) \
-            or (surrender is False and occupy is not None and next_round is False) \
-            or (surrender is False and occupy is None and next_round is True), \
-            f"surrender={surrender}, occupy={occupy}, next_round={next_round}"
+        assert ((surrender is True and occupy is None and next_round is False)
+                or (surrender is False and occupy is not None and next_round is False)
+                or (surrender is False and occupy is None and next_round is True)), \
+            "surrender={surrender}, occupy={occupy}, next_round={next_round}"
         self.__surrender = surrender
         self.__occupy = occupy
         self.__start = next_round
@@ -144,7 +154,7 @@ class Action:
     def start(self) -> bool:
         return self.__start
 
-    def __str__(self):
+    def __repr__(self):
         if self.__surrender is True:
             action = "surrender"
         elif self.__occupy is not None:
@@ -153,7 +163,7 @@ class Action:
             action = "start"
         else:
             assert False
-        return (f"{type(self)}("
+        return (f"{type(self).__qualname__}("
                 f"{action})")
 
 
@@ -168,7 +178,8 @@ class Logic:
 
     def __init__(self, action_queues: Sequence[ActionQueue]):
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
-        assert len(action_queues) == State.players_count(), f"{action_queues}"
+        assert len(action_queues) == State.player_count(), \
+            f"{len(action_queues)}, {State.player_count()}"
         self.__action_queues = action_queues
 
     def advance(self, state: State):
@@ -253,8 +264,8 @@ class Logic:
             assert False
         state.phase = Phase.INROUND
 
-    def __str__(self):
-        return (f"{type(self)}("
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"action_queues={self.__action_queues})")
 
 
@@ -266,7 +277,7 @@ class World:
     def advance(self):
         self.__logic.advance(self.__state)
 
-    def __str__(self):
-        return (f"{type(self)}("
+    def __repr__(self):
+        return (f"{type(self).__qualname__}("
                 f"state={self.__state},"
                 f"logic={self.__logic})")

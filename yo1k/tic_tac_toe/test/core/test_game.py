@@ -66,8 +66,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cell = [
                 [None, None, None], [None, None, Mark.X], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cell)
@@ -81,8 +81,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         Logic([
                 ListActionQueue([Action.new_surrender()]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cells = [
                 [None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
@@ -119,8 +119,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 ([[Mark.X, Mark.O, Mark.X], [None, None, None], [None, None, None]],
                  Cell(0, 2), False)]
         for cells, cell, expect in args_and_expect_list:
-            actual = Logic._win_condition(Board(cells), cell)
-            with self.subTest(expect=expect, cells=cells):
+            with self.subTest(expect=expect, cell=cell, cells=cells):
+                actual = Logic._win_condition(Board(cells), cell)
                 self.assertEqual(actual, expect)
 
     def test_advance__win(self):
@@ -130,8 +130,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=4)
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cells = [
                 [Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, Mark.X]]
         self.assertEqual(state.board.cells, expected_board_cells)
@@ -150,8 +150,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=8)
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cells = [
                 [Mark.O, Mark.X, Mark.O],
                 [Mark.O, Mark.X, Mark.X],
@@ -173,8 +173,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 phase=Phase.OUTROUND, step=6)
         Logic([
                 ListActionQueue([Action.new_start()]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cells = [[None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 0)
@@ -187,8 +187,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state(phase=Phase.BEGINNING)
         Logic([
                 ListActionQueue([Action.new_start()]),
-                ListActionQueue([None])])\
-                .advance(state)
+                ListActionQueue([None])]) \
+            .advance(state)
         expected_board_cells = [[None, None, None], [None, None, None], [None, None, None]]
         self.assertEqual(state.board.cells, expected_board_cells)
         self.assertEqual(state.step, 0)
