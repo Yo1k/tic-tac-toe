@@ -3,6 +3,7 @@ from enum import Enum, auto
 from collections.abc import Sequence
 from typing import Optional
 from abc import ABC, abstractmethod
+from yo1k.tic_tac_toe.core.util import eq
 
 
 class Mark(Enum):
@@ -10,19 +11,11 @@ class Mark(Enum):
     O = auto()
 
 
+@eq
 class Player:
     def __init__(self, mark: Mark):
         self.mark = mark
         self.wins = 0
-
-    def __eq__(self, other):
-        if isinstance(other, Player):
-            if (
-                    self.mark is other.mark
-                    and self.wins == other.wins):
-                return True
-        else:
-            return False
 
     def __repr__(self):
         return (f"{type(self).__qualname__}("
@@ -51,6 +44,7 @@ class Cell:
                 f"y={self.y})")
 
 
+@eq
 class Board:
     def __init__(self, cells: Optional[Sequence[list[Optional[Mark]]]] = None):
         self.cells = Board.__empty_cells() if cells is None else cells
@@ -79,17 +73,12 @@ class Board:
         for row in cells:
             assert len(row) == expected, f"{len(row)}, {expected}"
 
-    def __eq__(self, other):
-        if isinstance(other, Board):
-            if self.cells == other.cells:
-                return True
-        return False
-
     def __repr__(self):
         return (f"{type(self).__qualname__}("
                 f"cells={self.cells})")
 
 
+@eq
 class State:
     """Full game state which is enough to restore a saved game."""
 
@@ -101,13 +90,13 @@ class State:
             phase=Phase.BEGINNING,
             round_: int = 0,
             step: int = 0):
-        self.game_rounds = game_rounds
+        self.board = board
+        self.step = step
         self.round = round_
+        self.phase = phase
         assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
         self.players = players
-        self.step = step
-        self.phase = phase
-        self.board = board
+        self.game_rounds = game_rounds
 
     def turn(self) -> int:
         """Returns `turn` - the index of the current `Player` in `State.players`.
@@ -121,20 +110,14 @@ class State:
     def player_count() -> int:
         return 2
 
-    def __eq__(self, other):
-        if isinstance(other, State):
-            if self.__dict__ == other.__dict__:
-                return True
-        return False
-
     def __repr__(self):
         return (f"{type(self).__qualname__}("
-                f"game_rounds={self.game_rounds},"
-                f"round={self.round},"
-                f"players={self.players},"
+                f"board={self.board},"
                 f"step={self.step},"
+                f"round={self.round},"
                 f"phase={self.phase},"
-                f"board={self.board})")
+                f"players={self.players},"
+                f"game_rounds={self.game_rounds})")
 
 
 class Action:

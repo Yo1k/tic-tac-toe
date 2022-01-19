@@ -27,7 +27,7 @@ class ListActionQueue(ActionQueue):
 
 
 def _new_state(
-        board: Board = None,
+        board: Optional[Board] = None,
         step: int = 0,
         round_: int = 0,
         phase: Phase = Phase.INROUND,
@@ -55,7 +55,7 @@ class LogicSingleActionTest(unittest.TestCase):
         Logic([ListActionQueue([None]), ListActionQueue([None])]).advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]))
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_advance__occupy_valid_action(self):
         state = _new_state()
@@ -66,7 +66,7 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]),
                 step=1)
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_advance__surrender_action(self):
         state = _new_state()
@@ -78,7 +78,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.OUTROUND,
                 player_o=_new_player(mark=Mark.O, wins=1))
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_win_condition(self):
         args_and_expect_list = [
@@ -125,7 +125,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=4,
                 phase=Phase.OUTROUND,
                 player_x=_new_player(mark=Mark.X, wins=1))
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_advance__draw(self):
         state = _new_state(
@@ -146,7 +146,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 board=Board(expected_board_cells),
                 step=8,
                 phase=Phase.OUTROUND)
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_advance__start_action__outround(self):
         state = _new_state(
@@ -167,7 +167,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 round_=1,
                 phase=Phase.INROUND,
                 player_x=_new_player(Mark.X, 1))
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_advance__start_action__onset(self):
         state = _new_state(phase=Phase.BEGINNING)
@@ -180,7 +180,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=0,
                 round_=0,
                 phase=Phase.INROUND)
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
 
 class LogicMultipleActionsTest(unittest.TestCase):
@@ -211,7 +211,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 round_=0,
                 phase=Phase.OUTROUND,
                 player_x=_new_player(mark=Mark.X, wins=1))
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
     def test_draw(self):
         state = _new_state(round_=1, phase=Phase.INROUND)
@@ -238,7 +238,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 step=8,
                 round_=1,
                 phase=Phase.OUTROUND)
-        self.assertEqual(state, expected_state)
+        self.assertEqual(expected_state, state)
 
 
 if __name__ == "__main__":
