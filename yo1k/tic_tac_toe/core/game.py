@@ -15,6 +15,15 @@ class Player:
         self.mark = mark
         self.wins = 0
 
+    def __eq__(self, other):
+        if isinstance(other, Player):
+            if (
+                    self.mark is other.mark
+                    and self.wins == other.wins):
+                return True
+        else:
+            return False
+
     def __repr__(self):
         return (f"{type(self).__qualname__}("
                 f"mark={self.mark},"
@@ -45,7 +54,7 @@ class Cell:
 class Board:
     def __init__(self, cells: Optional[Sequence[list[Optional[Mark]]]] = None):
         self.cells = Board.__empty_cells() if cells is None else cells
-        Board.assert_board(self.cells)
+        Board.__assert_board(self.cells, Board.size())
 
     def set(self, cell: Cell, mark: Mark):
         self.cells[cell.x][cell.y] = mark
@@ -65,18 +74,20 @@ class Board:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
     @staticmethod
-    def assert_board(cells: Optional[Sequence[list[Optional[Mark]]]], expected=None):
-        expected = Board.size() if expected is None else expected
-        if cells is None:
-            pass
-        else:
-            assert len(cells) == expected, f"{len(cells)}, {expected}"
-            for row in cells:
-                assert len(row) == expected, f"{len(row)}, {expected}"
+    def __assert_board(cells: Sequence[list[Optional[Mark]]], expected: int):
+        assert len(cells) == expected, f"{len(cells)}, {expected}"
+        for row in cells:
+            assert len(row) == expected, f"{len(row)}, {expected}"
+
+    def __eq__(self, other):
+        if isinstance(other, Board):
+            if self.cells == other.cells:
+                return True
+        return False
 
     def __repr__(self):
         return (f"{type(self).__qualname__}("
-                f"cells={self.cells},")
+                f"cells={self.cells})")
 
 
 class State:
@@ -109,6 +120,12 @@ class State:
     @staticmethod
     def player_count() -> int:
         return 2
+
+    def __eq__(self, other):
+        if isinstance(other, State):
+            if self.__dict__ == other.__dict__:
+                return True
+        return False
 
     def __repr__(self):
         return (f"{type(self).__qualname__}("
