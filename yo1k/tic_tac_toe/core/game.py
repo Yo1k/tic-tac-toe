@@ -89,7 +89,8 @@ class State:
             board: Board,
             phase=Phase.BEGINNING,
             round_: int = 0,
-            step: int = 0):
+            step: int = 0,
+            required_ready: Optional[set[int]] = None):
         self.board = board
         self.step = step
         self.round = round_
@@ -97,6 +98,7 @@ class State:
         assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
         self.players = players
         self.game_rounds = game_rounds
+        self.required_ready = set(range(len(players))) if required_ready is None else required_ready
 
     def turn(self) -> int:
         """Returns `turn` - the index of the current `Player` in `State.players`.
@@ -117,7 +119,8 @@ class State:
                 f"round={self.round},"
                 f"phase={self.phase},"
                 f"players={self.players},"
-                f"game_rounds={self.game_rounds})")
+                f"game_rounds={self.game_rounds},"
+                f"required_ready={self.required_ready})")
 
 
 class Action:
@@ -128,7 +131,7 @@ class Action:
             "surrender={surrender}, occupy={occupy}, next_round={next_round}"
         self.__surrender = surrender
         self.__occupy = occupy
-        self.__start = next_round
+        self.__ready = next_round
 
     @staticmethod
     def new_surrender() -> Action:
@@ -139,7 +142,7 @@ class Action:
         return Action(False, cell, False)
 
     @staticmethod
-    def new_start() -> Action:
+    def new_ready() -> Action:
         return Action(False, None, True)
 
     @property
@@ -151,16 +154,16 @@ class Action:
         return self.__occupy
 
     @property
-    def start(self) -> bool:
-        return self.__start
+    def ready(self) -> bool:
+        return self.__ready
 
     def __repr__(self):
         if self.__surrender is True:
             action = "surrender"
         elif self.__occupy is not None:
             action = f"occupy={self.__occupy}"
-        elif self.__start is True:
-            action = "start"
+        elif self.__ready is True:
+            action = "ready"
         else:
             assert False
         return (f"{type(self).__qualname__}("
@@ -183,15 +186,26 @@ class Logic:
         self.__action_queues = action_queues
 
     def advance(self, state: State):
-        action = self.__action_queues[state.turn()].next()
-        if action is None:
-            return None
-        elif action.start is True:
-            Logic.__start(state)
-        elif action.surrender is True:
-            Logic.__surrender(state)
-        elif action.occupy is not None:
-            Logic.__occupy(state, action.occupy)
+        if state.phase is Phase.BEGINNING\
+                or state.phase is Phase.OUTROUND:
+            for player_idx in state.required_ready.copy():
+                action = self.__action_queues[player_idx].next()
+                if action is None:
+                    return None
+                elif action.ready is True:
+                    Logic.__ready(state, player_idx)
+                else:
+                    assert False
+        elif state.phase is Phase.INROUND:
+            action = self.__action_queues[state.turn()].next()
+            if action is None:
+                return None
+            elif action.surrender is True:
+                Logic.__surrender(state)
+            elif action.occupy is not None:
+                Logic.__occupy(state, action.occupy)
+            else:
+                assert False
         else:
             assert False
 
@@ -241,28 +255,37 @@ class Logic:
         idx_other_player = (state.turn() + 1) % 2
         state.players[idx_other_player].wins += 1
         state.phase = Phase.OUTROUND
+        Logic.__update_required_ready(state)
 
     @staticmethod
     def __win(state: State):
         state.players[state.turn()].wins += 1
         state.phase = Phase.OUTROUND
+        Logic.__update_required_ready(state)
 
     @staticmethod
     def __draw(state: State):
         state.phase = Phase.OUTROUND
+        Logic.__update_required_ready(state)
 
     @staticmethod
-    def __start(state: State):
+    def __ready(state: State, player_idx: int):
         assert state.phase is Phase.BEGINNING or state.phase is Phase.OUTROUND
-        if state.phase is Phase.OUTROUND:
-            state.round += 1
-            state.step = 0
-            state.board.clean()
-        elif state.phase is Phase.BEGINNING:
-            pass
-        else:
-            assert False
-        state.phase = Phase.INROUND
+        state.required_ready.remove(player_idx)
+        if len(state.required_ready) == 0:
+            if state.phase is Phase.OUTROUND:
+                state.step = 0
+                state.round += 1
+                state.board.clean()
+            elif state.phase is Phase.BEGINNING:
+                pass
+            else:
+                assert False
+            state.phase = Phase.INROUND
+
+    @staticmethod
+    def __update_required_ready(state: State):
+        state.required_ready.update(range(len(state.players)))
 
     def __repr__(self):
         return (f"{type(self).__qualname__}("
