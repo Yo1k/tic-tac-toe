@@ -124,14 +124,14 @@ class State:
 
 
 class Action:
-    def __init__(self, surrender: bool, occupy: Optional[Cell], next_round: bool):
-        assert ((surrender is True and occupy is None and next_round is False)
-                or (surrender is False and occupy is not None and next_round is False)
-                or (surrender is False and occupy is None and next_round is True)), \
-            "surrender={surrender}, occupy={occupy}, next_round={next_round}"
+    def __init__(self, surrender: bool, occupy: Optional[Cell], ready: bool):
+        assert ((surrender is True and occupy is None and ready is False)
+                or (surrender is False and occupy is not None and ready is False)
+                or (surrender is False and occupy is None and ready is True)), \
+            "surrender={surrender}, occupy={occupy}, ready={ready}"
         self.__surrender = surrender
         self.__occupy = occupy
-        self.__ready = next_round
+        self.__ready = ready
 
     @staticmethod
     def new_surrender() -> Action:
@@ -186,7 +186,7 @@ class Logic:
         self.__action_queues = action_queues
 
     def advance(self, state: State):
-        if state.phase is Phase.BEGINNING\
+        if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
             for player_idx in state.required_ready.copy():
                 action = self.__action_queues[player_idx].next()
@@ -254,19 +254,16 @@ class Logic:
         assert state.phase is Phase.INROUND
         idx_other_player = (state.turn() + 1) % 2
         state.players[idx_other_player].wins += 1
-        state.phase = Phase.OUTROUND
-        Logic.__update_required_ready(state)
+        Logic.__set_outround(state)
 
     @staticmethod
     def __win(state: State):
         state.players[state.turn()].wins += 1
-        state.phase = Phase.OUTROUND
-        Logic.__update_required_ready(state)
+        Logic.__set_outround(state)
 
     @staticmethod
     def __draw(state: State):
-        state.phase = Phase.OUTROUND
-        Logic.__update_required_ready(state)
+        Logic.__set_outround(state)
 
     @staticmethod
     def __ready(state: State, player_idx: int):
@@ -284,7 +281,8 @@ class Logic:
             state.phase = Phase.INROUND
 
     @staticmethod
-    def __update_required_ready(state: State):
+    def __set_outround(state: State):
+        state.phase = Phase.OUTROUND
         state.required_ready.update(range(len(state.players)))
 
     def __repr__(self):

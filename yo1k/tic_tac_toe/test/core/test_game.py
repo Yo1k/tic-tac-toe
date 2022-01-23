@@ -37,11 +37,10 @@ def _new_state(
         required_ready: Optional[set[int]] = None) -> State:
     player_x = Player(Mark.X) if player_x is None else player_x
     player_o = Player(Mark.O) if player_o is None else player_o
-    players = [player_x, player_o]
     board = Board() if board is None else board
     required_ready = set() if required_ready is None else required_ready
     return State(
-            game_rounds=game_rounds, players=players, board=board, phase=phase,
+            game_rounds=game_rounds, players=[player_x, player_o], board=board, phase=phase,
             round_=round_, step=step,required_ready=required_ready)
 
 
@@ -163,10 +162,10 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=6,
                 phase=Phase.OUTROUND,
                 player_x=_new_player(Mark.X, 1),
-                required_ready=set(range(2)))
+                required_ready=set(range(1)))
         Logic([
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([Action.new_ready()])]) \
+                ListActionQueue([None])]) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
@@ -177,10 +176,10 @@ class LogicSingleActionTest(unittest.TestCase):
         self.assertEqual(expected_state, state)
 
     def test_advance__ready_action__onset(self):
-        state = _new_state(phase=Phase.BEGINNING, required_ready=set(range(2)))
+        state = _new_state(phase=Phase.BEGINNING, required_ready=set(range(1)))
         Logic([
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([Action.new_ready()])]) \
+                ListActionQueue([None])]) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
