@@ -188,24 +188,30 @@ class Logic:
     def advance(self, state: State):
         if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
-            for player_idx in state.required_ready.copy():
-                action = self.__action_queues[player_idx].next()
-                if action is None:
-                    return None
-                elif action.ready is True:
-                    Logic.__ready(state, player_idx)
-                else:
-                    assert False
+            self.__advance_beginning_outround(state)
         elif state.phase is Phase.INROUND:
-            action = self.__action_queues[state.turn()].next()
+            self.__advance_inround(state)
+        else:
+            assert False
+
+    def __advance_beginning_outround(self, state: State):
+        for player_idx in state.required_ready.copy():
+            action = self.__action_queues[player_idx].next()
             if action is None:
-                return None
-            elif action.surrender is True:
-                Logic.__surrender(state)
-            elif action.occupy is not None:
-                Logic.__occupy(state, action.occupy)
+                pass
+            elif action.ready is True:
+                Logic.__ready(state, player_idx)
             else:
                 assert False
+
+    def __advance_inround(self, state: State):
+        action = self.__action_queues[state.turn()].next()
+        if action is None:
+            pass
+        elif action.surrender is True:
+            Logic.__surrender(state)
+        elif action.occupy is not None:
+            Logic.__occupy(state, action.occupy)
         else:
             assert False
 
