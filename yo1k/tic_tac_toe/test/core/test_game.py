@@ -33,13 +33,15 @@ def _new_state(
         phase: Phase = Phase.INROUND,
         player_x: Optional[Player] = None,
         player_o: Optional[Player] = None,
-        game_rounds: int = 5) -> State:
+        game_rounds: int = 5,
+        required_ready: Optional[set[int]] = None) -> State:
     player_x = Player(Mark.X) if player_x is None else player_x
     player_o = Player(Mark.O) if player_o is None else player_o
     board = Board() if board is None else board
+    required_ready = set() if required_ready is None else required_ready
     return State(
             game_rounds=game_rounds, players=[player_x, player_o], board=board, phase=phase,
-            round_=round_, step=step)
+            round_=round_, step=step, required_ready=required_ready)
 
 
 def _new_player(mark: Mark, wins: int) -> Player:
@@ -70,6 +72,7 @@ class LogicSingleActionTest(unittest.TestCase):
 
     def test_advance__surrender_action(self):
         state = _new_state()
+        expected_required_ready = set(range(len(state.players)))
         Logic([
                 ListActionQueue([Action.new_surrender()]),
                 ListActionQueue([None])]) \
@@ -77,7 +80,8 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.OUTROUND,
-                player_o=_new_player(mark=Mark.O, wins=1))
+                player_o=_new_player(mark=Mark.O, wins=1),
+                required_ready=expected_required_ready)
         self.assertEqual(expected_state, state)
 
     def test_win_condition(self):
@@ -116,6 +120,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 board=Board([
                         [Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, None]]),
                 step=4)
+        expected_required_ready = set(range(len(state.players)))
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
                 ListActionQueue([None])]) \
@@ -124,7 +129,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 board=Board([[Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, Mark.X]]),
                 step=4,
                 phase=Phase.OUTROUND,
-                player_x=_new_player(mark=Mark.X, wins=1))
+                player_x=_new_player(mark=Mark.X, wins=1),
+                required_ready=expected_required_ready)
         self.assertEqual(expected_state, state)
 
     def test_advance__draw(self):
@@ -134,6 +140,7 @@ class LogicSingleActionTest(unittest.TestCase):
                         [Mark.O, Mark.X, Mark.X],
                         [Mark.X, Mark.O, None]]),
                 step=8)
+        expected_required_ready = set(range(len(state.players)))
         Logic([
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
                 ListActionQueue([None])]) \
@@ -145,10 +152,11 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_state = _new_state(
                 board=Board(expected_board_cells),
                 step=8,
-                phase=Phase.OUTROUND)
+                phase=Phase.OUTROUND,
+                required_ready=expected_required_ready)
         self.assertEqual(expected_state, state)
 
-    def test_advance__start_action__outround(self):
+    def test_advance__ready_action__outround(self):
         state = _new_state(
                 board=Board([
                         [Mark.X, Mark.O, Mark.X],
@@ -156,9 +164,10 @@ class LogicSingleActionTest(unittest.TestCase):
                         [Mark.X, None, Mark.O]]),
                 step=6,
                 phase=Phase.OUTROUND,
-                player_x=_new_player(Mark.X, 1))
+                player_x=_new_player(Mark.X, 1),
+                required_ready={0})
         Logic([
-                ListActionQueue([Action.new_start()]),
+                ListActionQueue([Action.new_ready()]),
                 ListActionQueue([None])]) \
             .advance(state)
         expected_state = _new_state(
@@ -169,10 +178,10 @@ class LogicSingleActionTest(unittest.TestCase):
                 player_x=_new_player(Mark.X, 1))
         self.assertEqual(expected_state, state)
 
-    def test_advance__start_action__onset(self):
-        state = _new_state(phase=Phase.BEGINNING)
+    def test_advance__ready_action__beginning(self):
+        state = _new_state(phase=Phase.BEGINNING, required_ready={0})
         Logic([
-                ListActionQueue([Action.new_start()]),
+                ListActionQueue([Action.new_ready()]),
                 ListActionQueue([None])]) \
             .advance(state)
         expected_state = _new_state(
@@ -185,15 +194,19 @@ class LogicSingleActionTest(unittest.TestCase):
 
 class LogicMultipleActionsTest(unittest.TestCase):
     def test_win(self):
-        state = _new_state(phase=Phase.BEGINNING)
+        state = _new_state(phase=Phase.BEGINNING, required_ready=set(range(State.player_count())))
+        expected_required_ready = set(range(len(state.players)))
         act_queue_px = ListActionQueue([
-                Action.new_start(),
+                None,
+                None,
+                Action.new_ready(),
                 Action.new_occupy(Cell(1, 1)),
                 None,
                 Action.new_occupy(Cell(0, 0)),
                 Action.new_occupy(Cell(0, 2)),
                 Action.new_occupy(Cell(2, 0))])
         act_queue_po = ListActionQueue([
+                Action.new_ready(),
                 Action.new_occupy(Cell(1, 2)),
                 Action.new_occupy(Cell(2, 2)),
                 None,
@@ -210,11 +223,13 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 step=6,
                 round_=0,
                 phase=Phase.OUTROUND,
-                player_x=_new_player(mark=Mark.X, wins=1))
+                player_x=_new_player(mark=Mark.X, wins=1),
+                required_ready=expected_required_ready)
         self.assertEqual(expected_state, state)
 
     def test_draw(self):
         state = _new_state(round_=1, phase=Phase.INROUND)
+        expected_required_ready = set(range(len(state.players)))
         act_queue_px = ListActionQueue([
                 Action.new_occupy(Cell(0, 0)),
                 Action.new_occupy(Cell(1, 0)),
@@ -237,7 +252,8 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 board=Board(expected_board_cells),
                 step=8,
                 round_=1,
-                phase=Phase.OUTROUND)
+                phase=Phase.OUTROUND,
+                required_ready=expected_required_ready)
         self.assertEqual(expected_state, state)
 
 
