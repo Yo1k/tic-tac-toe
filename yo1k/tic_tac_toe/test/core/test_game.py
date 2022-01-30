@@ -1,3 +1,6 @@
+import unittest
+from collections.abc import Sequence
+from typing import Optional
 from yo1k.tic_tac_toe.core.game import (
     ActionQueue,
     Action,
@@ -8,9 +11,6 @@ from yo1k.tic_tac_toe.core.game import (
     Board,
     Cell,
     Mark)
-from collections.abc import Sequence
-from typing import Optional
-import unittest
 
 
 class ListActionQueue(ActionQueue):
@@ -112,7 +112,7 @@ class LogicSingleActionTest(unittest.TestCase):
                  Cell(0, 2), False)]
         for cells, cell, expect in args_and_expect_list:
             with self.subTest(expect=expect, cell=cell, cells=cells):
-                actual = Logic._win_condition(Board(cells), cell)
+                actual = Logic.win_condition(Board(cells), cell)
                 self.assertEqual(actual, expect)
 
     def test_advance__win(self):
@@ -212,7 +212,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 None,
                 Action.new_occupy(Cell(0, 1))])
         logic = Logic([act_queue_px, act_queue_po])
-        for i in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
+        for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
             logic.advance(state)
         expected_board_cells = [
                 [Mark.X, Mark.O, Mark.X],
@@ -242,7 +242,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(0, 1)),
                 Action.new_occupy(Cell(2, 2))])
         logic = Logic([act_queue_px, act_queue_po])
-        for i in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
+        for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
             logic.advance(state)
         expected_board_cells = [
                 [Mark.X, Mark.O, Mark.X],
