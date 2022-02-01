@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
-from collections.abc import Sequence
 from typing import Optional
+from collections.abc import MutableSequence
 from abc import ABC, abstractmethod
 from yo1k.tic_tac_toe.core.util import eq
 
@@ -14,10 +14,10 @@ class Mark(Enum):
 @eq
 class Player:
     def __init__(self, mark: Mark):
-        self.mark = mark
-        self.wins = 0
+        self.mark: Mark = mark
+        self.wins: int = 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"mark={self.mark},"
                 f"wins={self.wins})")
@@ -35,10 +35,10 @@ class Cell:
     def __init__(self, x: int, y: int):
         assert 0 <= x < Board.size(), f"{x}, {Board.size()}"
         assert 0 <= y < Board.size(), f"{y}, {Board.size()}"
-        self.x = x
-        self.y = y
+        self.x: int = x
+        self.y: int = y
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"x={self.x},"
                 f"y={self.y})")
@@ -46,17 +46,18 @@ class Cell:
 
 @eq
 class Board:
-    def __init__(self, cells: Optional[Sequence[list[Optional[Mark]]]] = None):
-        self.cells = Board.__empty_cells() if cells is None else cells
+    def __init__(self, cells: Optional[MutableSequence[MutableSequence[Optional[Mark]]]] = None):
+        self.cells: MutableSequence[MutableSequence[Optional[Mark]]] \
+            = Board.__empty_cells() if cells is None else cells
         Board.__assert_board(self.cells, Board.size())
 
-    def set(self, cell: Cell, mark: Mark):
+    def set(self, cell: Cell, mark: Mark) -> None:
         self.cells[cell.x][cell.y] = mark
 
     def get(self, cell: Cell) -> Optional[Mark]:
         return self.cells[cell.x][cell.y]
 
-    def clean(self):
+    def clean(self) -> None:
         self.cells = Board.__empty_cells()
 
     @staticmethod
@@ -64,16 +65,17 @@ class Board:
         return 3
 
     @staticmethod
-    def __empty_cells() -> list[list[Optional[Mark]]]:
+    def __empty_cells() -> MutableSequence[MutableSequence[Optional[Mark]]]:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
     @staticmethod
-    def __assert_board(cells: Sequence[list[Optional[Mark]]], expected: int):
+    def __assert_board(cells: MutableSequence[MutableSequence[Optional[Mark]]], expected: int) \
+            -> None:
         assert len(cells) == expected, f"{len(cells)}, {expected}"
         for row in cells:
             assert len(row) == expected, f"{len(row)}, {expected}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"cells={self.cells})")
 
@@ -85,20 +87,21 @@ class State:
     def __init__(
             self,
             game_rounds: int,
-            players: Sequence[Player],
+            players: MutableSequence[Player],
             board: Board,
-            phase=Phase.BEGINNING,
+            phase: Phase = Phase.BEGINNING,
             round_: int = 0,
             step: int = 0,
             required_ready: Optional[set[int]] = None):
-        self.board = board
-        self.step = step
-        self.round = round_
-        self.phase = phase
+        self.game_rounds: int = game_rounds
         assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
-        self.players = players
-        self.game_rounds = game_rounds
-        self.required_ready = set(range(len(players))) if required_ready is None else required_ready
+        self.players: MutableSequence[Player] = players
+        self.board: Board = board
+        self.phase: Phase = phase
+        self.round: int = round_
+        self.step: int = step
+        self.required_ready: set[int] \
+            = set(range(len(players))) if required_ready is None else required_ready
 
     def turn(self) -> int:
         """Returns `turn` - the index of the current `Player` in `State.players`.
@@ -106,20 +109,20 @@ class State:
         `turn` is calculated in such a way as to alternate players order in different
         `round` while keeping the same `Player` index in the `State.players`.
         """
-        return (self.step + self.round) % 2
+        return (self.step + self.round) % len(self.players)
 
     @staticmethod
     def player_count() -> int:
         return 2
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
-                f"board={self.board},"
-                f"step={self.step},"
-                f"round={self.round},"
-                f"phase={self.phase},"
-                f"players={self.players},"
                 f"game_rounds={self.game_rounds},"
+                f"players={self.players},"
+                f"board={self.board},"
+                f"phase={self.phase},"
+                f"round={self.round},"
+                f"step={self.step},"
                 f"required_ready={self.required_ready})")
 
 
@@ -129,9 +132,9 @@ class Action:
                 or (surrender is False and occupy is not None and ready is False)
                 or (surrender is False and occupy is None and ready is True)), \
             "surrender={surrender}, occupy={occupy}, ready={ready}"
-        self.__surrender = surrender
-        self.__occupy = occupy
-        self.__ready = ready
+        self.__surrender: bool = surrender
+        self.__occupy: Optional[Cell] = occupy
+        self.__ready: bool = ready
 
     @staticmethod
     def new_surrender() -> Action:
@@ -150,14 +153,14 @@ class Action:
         return self.__surrender
 
     @property
-    def occupy(self) -> Cell:
+    def occupy(self) -> Optional[Cell]:
         return self.__occupy
 
     @property
     def ready(self) -> bool:
         return self.__ready
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.__surrender is True:
             action = "surrender"
         elif self.__occupy is not None:
@@ -179,13 +182,13 @@ class ActionQueue(ABC):
 class Logic:
     """Game logic."""
 
-    def __init__(self, action_queues: Sequence[ActionQueue]):
+    def __init__(self, action_queues: MutableSequence[ActionQueue]):
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
         assert len(action_queues) == State.player_count(), \
             f"{len(action_queues)}, {State.player_count()}"
-        self.__action_queues = action_queues
+        self.__action_queues: MutableSequence[ActionQueue] = action_queues
 
-    def advance(self, state: State):
+    def advance(self, state: State) -> None:
         if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
             self.__advance_beginning_outround(state)
@@ -194,7 +197,7 @@ class Logic:
         else:
             assert False
 
-    def __advance_beginning_outround(self, state: State):
+    def __advance_beginning_outround(self, state: State) -> None:
         for player_idx in state.required_ready.copy():
             action = self.__action_queues[player_idx].next()
             if action is None:
@@ -204,7 +207,7 @@ class Logic:
             else:
                 assert False
 
-    def __advance_inround(self, state: State):
+    def __advance_inround(self, state: State) -> None:
         action = self.__action_queues[state.turn()].next()
         if action is None:
             pass
@@ -216,7 +219,7 @@ class Logic:
             assert False
 
     @staticmethod
-    def __occupy(state: State, cell: Cell):
+    def __occupy(state: State, cell: Cell) -> None:
         assert state.phase is Phase.INROUND
         mark = state.players[state.turn()].mark
         if state.board.get(cell) is None:
@@ -256,23 +259,23 @@ class Logic:
         return step == Board.size() ** 2 - 1
 
     @staticmethod
-    def __surrender(state: State):
+    def __surrender(state: State) -> None:
         assert state.phase is Phase.INROUND
         idx_other_player = (state.turn() + 1) % 2
         state.players[idx_other_player].wins += 1
         Logic.__set_outround(state)
 
     @staticmethod
-    def __win(state: State):
+    def __win(state: State) -> None:
         state.players[state.turn()].wins += 1
         Logic.__set_outround(state)
 
     @staticmethod
-    def __draw(state: State):
+    def __draw(state: State) -> None:
         Logic.__set_outround(state)
 
     @staticmethod
-    def __ready(state: State, player_idx: int):
+    def __ready(state: State, player_idx: int) -> None:
         assert state.phase is Phase.BEGINNING or state.phase is Phase.OUTROUND
         state.required_ready.remove(player_idx)
         if len(state.required_ready) == 0:
@@ -287,24 +290,24 @@ class Logic:
             state.phase = Phase.INROUND
 
     @staticmethod
-    def __set_outround(state: State):
+    def __set_outround(state: State) -> None:
         state.phase = Phase.OUTROUND
         state.required_ready.update(range(len(state.players)))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"action_queues={self.__action_queues})")
 
 
 class World:
     def __init__(self, state: State, logic: Logic):
-        self.__state = state
-        self.__logic = logic
+        self.__state: State = state
+        self.__logic: Logic = logic
 
-    def advance(self):
+    def advance(self) -> None:
         self.__logic.advance(self.__state)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"state={self.__state},"
                 f"logic={self.__logic})")
