@@ -1,5 +1,5 @@
 import unittest
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from typing import Optional
 from yo1k.tic_tac_toe.core.game import (
     ActionQueue,
@@ -16,7 +16,7 @@ from yo1k.tic_tac_toe.core.game import (
 class ListActionQueue(ActionQueue):
     def __init__(self, actions: MutableSequence[Optional[Action]]):
         self.actions: MutableSequence[Optional[Action]] = actions
-        self.i = 0
+        self.i: int = 0
 
     def next(self) -> Optional[Action]:
         if self.i >= len(self.actions):
@@ -40,7 +40,7 @@ def _new_state(
     board = Board() if board is None else board
     required_ready = set() if required_ready is None else required_ready
     return State(
-            game_rounds=game_rounds, players=[player_x, player_o], board=board, phase=phase,
+            game_rounds=game_rounds, players=(player_x, player_o), board=board, phase=phase,
             round_=round_, step=step, required_ready=required_ready)
 
 
@@ -54,16 +54,16 @@ class LogicSingleActionTest(unittest.TestCase):
     def test_advance__none_action(self) -> None:
         state = _new_state(board=Board([
                 [None, None, None], [None, None, Mark.X], [None, None, None]]))
-        Logic([ListActionQueue([None]), ListActionQueue([None])]).advance(state)
+        Logic((ListActionQueue([None]), ListActionQueue([None]))).advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]))
         self.assertEqual(expected_state, state)
 
     def test_advance__occupy_valid_action(self) -> None:
         state = _new_state()
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]),
@@ -73,9 +73,9 @@ class LogicSingleActionTest(unittest.TestCase):
     def test_advance__surrender_action(self) -> None:
         state = _new_state()
         expected_required_ready = set(range(len(state.players)))
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_surrender()]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
                 player_o=_new_player(mark=Mark.O, wins=1),
@@ -121,9 +121,9 @@ class LogicSingleActionTest(unittest.TestCase):
                         [Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, None]]),
                 step=4)
         expected_required_ready = set(range(len(state.players)))
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(mark=Mark.X, wins=1),
@@ -141,11 +141,11 @@ class LogicSingleActionTest(unittest.TestCase):
                         [Mark.X, Mark.O, None]]),
                 step=8)
         expected_required_ready = set(range(len(state.players)))
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
-        expected_board_cells: MutableSequence[MutableSequence[Optional[Mark]]] = [
+        expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.O, Mark.X, Mark.O],
                 [Mark.O, Mark.X, Mark.X],
                 [Mark.X, Mark.O, Mark.X]]
@@ -166,9 +166,9 @@ class LogicSingleActionTest(unittest.TestCase):
                 phase=Phase.OUTROUND,
                 step=6,
                 required_ready={0})
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(Mark.X, 1),
@@ -180,9 +180,9 @@ class LogicSingleActionTest(unittest.TestCase):
 
     def test_advance__ready_action__beginning(self) -> None:
         state = _new_state(phase=Phase.BEGINNING, required_ready={0})
-        Logic([
+        Logic((
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([None])]) \
+                ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
@@ -211,10 +211,10 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(2, 2)),
                 None,
                 Action.new_occupy(Cell(0, 1))])
-        logic = Logic([act_queue_px, act_queue_po])
+        logic = Logic((act_queue_px, act_queue_po))
         for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
             logic.advance(state)
-        expected_board_cells: MutableSequence[MutableSequence[Optional[Mark]]] = [
+        expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
                 [None, Mark.X, Mark.O],
                 [Mark.X, None, Mark.O]]
@@ -241,10 +241,10 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(2, 0)),
                 Action.new_occupy(Cell(0, 1)),
                 Action.new_occupy(Cell(2, 2))])
-        logic = Logic([act_queue_px, act_queue_po])
+        logic = Logic((act_queue_px, act_queue_po))
         for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
             logic.advance(state)
-        expected_board_cells: MutableSequence[MutableSequence[Optional[Mark]]] = [
+        expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
                 [Mark.X, Mark.O, Mark.O],
                 [Mark.O, Mark.X, Mark.O]]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
 from typing import Optional
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from abc import ABC, abstractmethod
 from yo1k.tic_tac_toe.core.util import eq
 
@@ -46,18 +46,19 @@ class Cell:
 
 @eq
 class Board:
-    def __init__(self, cells: Optional[MutableSequence[MutableSequence[Optional[Mark]]]] = None):
-        self.cells: MutableSequence[MutableSequence[Optional[Mark]]] \
+    def __init__(self, cells: Optional[Sequence[MutableSequence[Optional[Mark]]]] = None):
+        self.cells: Sequence[MutableSequence[Optional[Mark]]] \
             = Board.__empty_cells() if cells is None else cells
         Board.__assert_board(self.cells, Board.size())
 
     def set(self, cell: Cell, mark: Mark) -> None:
+        assert self.cells[cell.x][cell.y] is None
         self.cells[cell.x][cell.y] = mark
 
     def get(self, cell: Cell) -> Optional[Mark]:
         return self.cells[cell.x][cell.y]
 
-    def clean(self) -> None:
+    def clear(self) -> None:
         self.cells = Board.__empty_cells()
 
     @staticmethod
@@ -65,11 +66,11 @@ class Board:
         return 3
 
     @staticmethod
-    def __empty_cells() -> MutableSequence[MutableSequence[Optional[Mark]]]:
+    def __empty_cells() -> Sequence[MutableSequence[Optional[Mark]]]:
         return [[None for _ in range(Board.size())] for _ in range(Board.size())]
 
     @staticmethod
-    def __assert_board(cells: MutableSequence[MutableSequence[Optional[Mark]]], expected: int) \
+    def __assert_board(cells: Sequence[MutableSequence[Optional[Mark]]], expected: int) \
             -> None:
         assert len(cells) == expected, f"{len(cells)}, {expected}"
         for row in cells:
@@ -87,7 +88,7 @@ class State:
     def __init__(
             self,
             game_rounds: int,
-            players: MutableSequence[Player],
+            players: Sequence[Player],
             board: Board,
             phase: Phase = Phase.BEGINNING,
             round_: int = 0,
@@ -95,7 +96,7 @@ class State:
             required_ready: Optional[set[int]] = None):
         self.game_rounds: int = game_rounds
         assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
-        self.players: MutableSequence[Player] = players
+        self.players: Sequence[Player] = players
         self.board: Board = board
         self.phase: Phase = phase
         self.round: int = round_
@@ -182,11 +183,11 @@ class ActionQueue(ABC):
 class Logic:
     """Game logic."""
 
-    def __init__(self, action_queues: MutableSequence[ActionQueue]):
+    def __init__(self, action_queues: Sequence[ActionQueue]):
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
         assert len(action_queues) == State.player_count(), \
             f"{len(action_queues)}, {State.player_count()}"
-        self.__action_queues: MutableSequence[ActionQueue] = action_queues
+        self.__action_queues: Sequence[ActionQueue] = action_queues
 
     def advance(self, state: State) -> None:
         if state.phase is Phase.BEGINNING \
@@ -221,11 +222,7 @@ class Logic:
     @staticmethod
     def __occupy(state: State, cell: Cell) -> None:
         assert state.phase is Phase.INROUND
-        mark = state.players[state.turn()].mark
-        if state.board.get(cell) is None:
-            state.board.set(cell, mark)
-        else:
-            assert False
+        state.board.set(cell, state.players[state.turn()].mark)
         if Logic.win_condition(state.board, cell):
             Logic.__win(state)
         elif Logic.__last_step(state.step):
@@ -261,18 +258,19 @@ class Logic:
     @staticmethod
     def __surrender(state: State) -> None:
         assert state.phase is Phase.INROUND
-        idx_other_player = (state.turn() + 1) % 2
+        assert State.player_count() == 2
+        idx_other_player = (state.turn() + 1) % len(state.players)
         state.players[idx_other_player].wins += 1
-        Logic.__set_outround(state)
+        Logic.__end_round(state)
 
     @staticmethod
     def __win(state: State) -> None:
         state.players[state.turn()].wins += 1
-        Logic.__set_outround(state)
+        Logic.__end_round(state)
 
     @staticmethod
     def __draw(state: State) -> None:
-        Logic.__set_outround(state)
+        Logic.__end_round(state)
 
     @staticmethod
     def __ready(state: State, player_idx: int) -> None:
@@ -282,7 +280,7 @@ class Logic:
             if state.phase is Phase.OUTROUND:
                 state.step = 0
                 state.round += 1
-                state.board.clean()
+                state.board.clear()
             elif state.phase is Phase.BEGINNING:
                 pass
             else:
@@ -290,7 +288,7 @@ class Logic:
             state.phase = Phase.INROUND
 
     @staticmethod
-    def __set_outround(state: State) -> None:
+    def __end_round(state: State) -> None:
         state.phase = Phase.OUTROUND
         state.required_ready.update(range(len(state.players)))
 
