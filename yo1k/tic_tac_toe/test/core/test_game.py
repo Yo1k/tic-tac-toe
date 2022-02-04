@@ -194,7 +194,8 @@ class LogicSingleActionTest(unittest.TestCase):
 
 class LogicMultipleActionsTest(unittest.TestCase):
     def test_win(self):
-        state = _new_state(phase=Phase.BEGINNING, required_ready=set(range(State.player_count())))
+        state = _new_state(
+                phase=Phase.BEGINNING, required_ready=set(range(State.const_player_count())))
         expected_required_ready = set(range(len(state.players)))
         act_queue_px = ListActionQueue([
                 None,
