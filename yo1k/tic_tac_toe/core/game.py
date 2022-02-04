@@ -258,6 +258,7 @@ class Logic:
     @staticmethod
     def __surrender(state: State) -> None:
         assert state.phase is Phase.INROUND
+        # for more players this method would have been implemented quite differently
         assert State.player_count() == 2
         idx_other_player = (state.turn() + 1) % len(state.players)
         state.players[idx_other_player].wins += 1
