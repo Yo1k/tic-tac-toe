@@ -16,14 +16,10 @@ from yo1k.tic_tac_toe.core.game import (
 class ListActionQueue(ActionQueue):
     def __init__(self, actions: MutableSequence[Optional[Action]]):
         self.actions: MutableSequence[Optional[Action]] = actions
-        self.i: int = 0
+        self.actions.reverse()
 
     def next(self) -> Optional[Action]:
-        if self.i >= len(self.actions):
-            return None
-        action = self.actions[self.i]
-        self.i += 1
-        return action
+        return self.actions.pop()
 
 
 def _new_state(
@@ -59,7 +55,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]))
         self.assertEqual(expected_state, state)
 
-    def test_advance__occupy_valid_action(self) -> None:
+    def test_advance__occupy_action(self) -> None:
         state = _new_state()
         Logic((
                 ListActionQueue([Action.new_occupy(Cell(1, 2))]),
@@ -158,7 +154,7 @@ class LogicSingleActionTest(unittest.TestCase):
 
     def test_advance__ready_action__outround(self) -> None:
         state = _new_state(
-                player_x=_new_player(Mark.X, 1),
+                player_x=_new_player(mark=Mark.X, wins=1),
                 board=Board([
                         [Mark.X, Mark.O, Mark.X],
                         [None, Mark.X, Mark.O],
@@ -171,7 +167,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([None]))) \
             .advance(state)
         expected_state = _new_state(
-                player_x=_new_player(Mark.X, 1),
+                player_x=_new_player(mark=Mark.X, wins=1),
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.INROUND,
                 round_=1,
@@ -214,7 +210,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 None,
                 Action.new_occupy(Cell(0, 1))])
         logic = Logic((act_queue_px, act_queue_po))
-        for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
+        while len(act_queue_px.actions) + len(act_queue_po.actions) != 0:
             logic.advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
@@ -244,7 +240,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(0, 1)),
                 Action.new_occupy(Cell(2, 2))])
         logic = Logic((act_queue_px, act_queue_po))
-        for _ in range(0, len(act_queue_px.actions) + len(act_queue_po.actions)):
+        while len(act_queue_px.actions) + len(act_queue_po.actions) != 0:
             logic.advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
