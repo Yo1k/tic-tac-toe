@@ -1,5 +1,6 @@
-import numpy as np
 import os
+import numpy as np
+
 
 data = np.array([[1, 2], [3, 4]])
 ones = np.array([[1, 1], [1, 1]])
