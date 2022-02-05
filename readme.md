@@ -9,11 +9,11 @@
 
 ## About
 
-A tic-tac-toe client-server application intended to be interoperable with its
+A multiplayer turn-based game. The application is intended to be interoperable with its
 [Rust](https://www.rust-lang.org/) counterpart
 [stIncMale/tic-tac-toe](https://github.com/stIncMale/tic-tac-toe).
 
-The goals of this project is to learn programming in [Python](https://www.python.org/).
+The goals of this project is to learn [Python](https://www.python.org/).
 
 ## [Contributor Guide](https://github.com/Yo1k/tic-tac-toe/blob/master/contributing.md)
 
