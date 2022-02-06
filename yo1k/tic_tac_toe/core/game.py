@@ -243,6 +243,7 @@ class Logic:
         x = last_occupied.x
         y = last_occupied.y
         mark = board.get(last_occupied)
+        assert mark is not None
         for i in range(board.size()):
             if board.get(Cell(i, y)) == mark:
                 h_match += 1

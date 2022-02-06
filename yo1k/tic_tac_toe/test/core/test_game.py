@@ -210,7 +210,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 None,
                 Action.new_occupy(Cell(0, 1))])
         logic = Logic((act_queue_px, act_queue_po))
-        while len(act_queue_px.actions) + len(act_queue_po.actions) != 0:
+        while len(act_queue_px.actions) + len(act_queue_po.actions) > 0:
             logic.advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
@@ -240,7 +240,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(0, 1)),
                 Action.new_occupy(Cell(2, 2))])
         logic = Logic((act_queue_px, act_queue_po))
-        while len(act_queue_px.actions) + len(act_queue_po.actions) != 0:
+        while len(act_queue_px.actions) + len(act_queue_po.actions) > 0:
             logic.advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.X, Mark.O, Mark.X],
