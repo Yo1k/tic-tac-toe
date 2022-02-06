@@ -33,8 +33,8 @@ class Cell:
     """A game board cell."""
 
     def __init__(self, x: int, y: int):
-        assert 0 <= x < Board.size(), f"{x}, {Board.size()}"
-        assert 0 <= y < Board.size(), f"{y}, {Board.size()}"
+        assert 0 <= x < Board.const_size(), f"{x}, {Board.const_size()}"
+        assert 0 <= y < Board.const_size(), f"{y}, {Board.const_size()}"
         self.x: int = x
         self.y: int = y
 
@@ -49,7 +49,7 @@ class Board:
     def __init__(self, cells: Optional[Sequence[MutableSequence[Optional[Mark]]]] = None):
         self.cells: Sequence[MutableSequence[Optional[Mark]]] \
             = Board.__empty_cells() if cells is None else cells
-        Board.__assert_board(self.cells, Board.size())
+        Board.__assert_board(self.cells, self.size())
 
     def set(self, cell: Cell, mark: Mark) -> None:
         assert self.cells[cell.x][cell.y] is None
@@ -61,13 +61,16 @@ class Board:
     def clear(self) -> None:
         self.cells = Board.__empty_cells()
 
+    def size(self) -> int:
+        return len(self.cells)
+
     @staticmethod
-    def size() -> int:
+    def const_size() -> int:
         return 3
 
     @staticmethod
     def __empty_cells() -> Sequence[MutableSequence[Optional[Mark]]]:
-        return [[None for _ in range(Board.size())] for _ in range(Board.size())]
+        return [[None for _ in range(Board.const_size())] for _ in range(Board.const_size())]
 
     @staticmethod
     def __assert_board(cells: Sequence[MutableSequence[Optional[Mark]]], expected: int) \
@@ -95,7 +98,8 @@ class State:
             step: int = 0,
             required_ready: Optional[set[int]] = None):
         self.game_rounds: int = game_rounds
-        assert len(players) == State.player_count(), f"{len(players)}, {State.player_count()}"
+        assert len(players) == State.const_player_count(), \
+            f"{len(players)}, {State.const_player_count()}"
         self.players: Sequence[Player] = players
         self.board: Board = board
         self.phase: Phase = phase
@@ -113,7 +117,7 @@ class State:
         return (self.step + self.round) % len(self.players)
 
     @staticmethod
-    def player_count() -> int:
+    def const_player_count() -> int:
         return 2
 
     def __repr__(self) -> str:
@@ -185,8 +189,8 @@ class Logic:
 
     def __init__(self, action_queues: Sequence[ActionQueue]):
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
-        assert len(action_queues) == State.player_count(), \
-            f"{len(action_queues)}, {State.player_count()}"
+        assert len(action_queues) == State.const_player_count(), \
+            f"{len(action_queues)}, {State.const_player_count()}"
         self.__action_queues: Sequence[ActionQueue] = action_queues
 
     def advance(self, state: State) -> None:
@@ -225,7 +229,7 @@ class Logic:
         state.board.set(cell, state.players[state.turn()].mark)
         if Logic.win_condition(state.board, cell):
             Logic.__win(state)
-        elif Logic.__last_step(state.step):
+        elif Logic.__last_step(state.step, state.board):
             Logic.__draw(state)
         else:
             state.step += 1
@@ -239,27 +243,28 @@ class Logic:
         x = last_occupied.x
         y = last_occupied.y
         mark = board.get(last_occupied)
-        for i in range(Board.size()):
+        assert mark is not None
+        for i in range(board.size()):
             if board.get(Cell(i, y)) == mark:
                 h_match += 1
             if board.get(Cell(x, i)) == mark:
                 v_match += 1
             if board.get((Cell(i, i))) == mark:
                 d1_match += 1
-            if board.get(Cell(i, Board.size() - 1 - i)) == mark:
+            if board.get(Cell(i, board.size() - 1 - i)) == mark:
                 d2_match += 1
-        return (h_match == Board.size() or v_match == Board.size()
-                or d1_match == Board.size() or d2_match == Board.size())
+        return (h_match == board.size() or v_match == board.size()
+                or d1_match == board.size() or d2_match == board.size())
 
     @staticmethod
-    def __last_step(step: int) -> bool:
-        return step == Board.size() ** 2 - 1
+    def __last_step(step: int, board: Board) -> bool:
+        return step == board.size() ** 2 - 1
 
     @staticmethod
     def __surrender(state: State) -> None:
         assert state.phase is Phase.INROUND
         # for more players this method would have been implemented quite differently
-        assert State.player_count() == 2
+        assert State.const_player_count() == 2
         idx_other_player = (state.turn() + 1) % len(state.players)
         state.players[idx_other_player].wins += 1
         Logic.__end_round(state)
