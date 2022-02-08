@@ -4,4 +4,4 @@
 set -eu
 
 source ./harness-util/package-util.sh
-clean_build
+clean_build_dir

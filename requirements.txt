@@ -1,1 +1,3 @@
+# Contains all dependencies required for the application.
+
 numpy==1.21.2
