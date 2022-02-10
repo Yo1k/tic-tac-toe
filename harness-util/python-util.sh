@@ -58,7 +58,7 @@ function test() {
     python3 -m unittest discover "${CODE_DIR}"
 }
 
-function check() {
+function verify() {
     pylint_check && mypy_check && test
 }
 

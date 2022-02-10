@@ -3,7 +3,7 @@ from enum import Enum, auto
 from typing import Optional
 from collections.abc import MutableSequence, Sequence
 from abc import ABC, abstractmethod
-from yo1k.tic_tac_toe.core.util import eq
+from yo1k.tic_tac_toe.kernel.util import eq
 
 
 class Mark(Enum):
@@ -180,7 +180,7 @@ class Action:
 
 class ActionQueue(ABC):
     @abstractmethod
-    def next(self) -> Optional[Action]:
+    def pop(self) -> Optional[Action]:
         pass
 
 
@@ -204,7 +204,7 @@ class Logic:
 
     def __advance_beginning_outround(self, state: State) -> None:
         for player_idx in state.required_ready.copy():
-            action = self.__action_queues[player_idx].next()
+            action = self.__action_queues[player_idx].pop()
             if action is None:
                 pass
             elif action.ready is True:
@@ -213,7 +213,7 @@ class Logic:
                 assert False
 
     def __advance_inround(self, state: State) -> None:
-        action = self.__action_queues[state.turn()].next()
+        action = self.__action_queues[state.turn()].pop()
         if action is None:
             pass
         elif action.surrender is True:

@@ -1,7 +1,7 @@
 import unittest
 from collections.abc import MutableSequence, Sequence
 from typing import Optional
-from yo1k.tic_tac_toe.core.game import (
+from yo1k.tic_tac_toe.kernel.game import (
     ActionQueue,
     Action,
     Phase,
@@ -18,7 +18,7 @@ class ListActionQueue(ActionQueue):
         self.actions: MutableSequence[Optional[Action]] = actions
         self.actions.reverse()
 
-    def next(self) -> Optional[Action]:
+    def pop(self) -> Optional[Action]:
         if len(self.actions) == 0:
             return None
         else:
