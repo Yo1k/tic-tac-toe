@@ -92,7 +92,9 @@ disable=raw-checker-failed,
         C0115,
         # missing-function-docstring
         C0116,
-        design
+        design,
+        # no-else-return
+        R1705
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

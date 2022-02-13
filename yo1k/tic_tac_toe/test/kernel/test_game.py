@@ -1,7 +1,7 @@
 import unittest
 from collections.abc import MutableSequence, Sequence
 from typing import Optional
-from yo1k.tic_tac_toe.core.game import (
+from yo1k.tic_tac_toe.kernel.game import (
     ActionQueue,
     Action,
     Phase,
@@ -18,8 +18,11 @@ class ListActionQueue(ActionQueue):
         self.actions: MutableSequence[Optional[Action]] = actions
         self.actions.reverse()
 
-    def next(self) -> Optional[Action]:
-        return self.actions.pop()
+    def pop(self) -> Optional[Action]:
+        if len(self.actions) == 0:
+            return None
+        else:
+            return self.actions.pop()
 
 
 def _new_state(
@@ -47,10 +50,10 @@ def _new_player(mark: Mark, wins: int) -> Player:
 
 
 class LogicSingleActionTest(unittest.TestCase):
-    def test_advance__none_action(self) -> None:
+    def test_advance__no_action(self) -> None:
         state = _new_state(board=Board([
                 [None, None, None], [None, None, Mark.X], [None, None, None]]))
-        Logic((ListActionQueue([None]), ListActionQueue([None]))).advance(state)
+        Logic((ListActionQueue([]), ListActionQueue([]))).advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]))
         self.assertEqual(expected_state, state)
@@ -59,7 +62,7 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         Logic((
                 ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]),
@@ -71,7 +74,7 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_required_ready = set(range(len(state.players)))
         Logic((
                 ListActionQueue([Action.new_surrender()]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
                 player_o=_new_player(mark=Mark.O, wins=1),
@@ -119,7 +122,7 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_required_ready = set(range(len(state.players)))
         Logic((
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(mark=Mark.X, wins=1),
@@ -139,7 +142,7 @@ class LogicSingleActionTest(unittest.TestCase):
         expected_required_ready = set(range(len(state.players)))
         Logic((
                 ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.O, Mark.X, Mark.O],
@@ -164,7 +167,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 required_ready={0})
         Logic((
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(mark=Mark.X, wins=1),
@@ -178,7 +181,7 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state(phase=Phase.BEGINNING, required_ready={0})
         Logic((
                 ListActionQueue([Action.new_ready()]),
-                ListActionQueue([None]))) \
+                ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),

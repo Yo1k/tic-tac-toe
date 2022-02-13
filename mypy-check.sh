@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Runs all tests.
+# Uses Mypy to check static types of the code.
 
 set -eu
 
 source ./harness-util/python-util.sh
-test
+mypy_check

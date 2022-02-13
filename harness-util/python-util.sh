@@ -12,7 +12,7 @@ function create_python_venv() {
         python3 -m venv "./${PYTHON_VENV}"
         activate_python_venv;
     fi
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r toolchain-requirements.txt
     if [[ ${IN_PYTHON_VENV} = "false" ]]; then
         deactivate_python_venv;
     fi
@@ -26,7 +26,7 @@ from pathlib import PurePath
 if sys.prefix == sys.base_prefix:
     print("false", end="")
 else:
-    expected_python_venv = sys.argv[1]
+    expected_python_venv = PurePath(sys.argv[1]).name
     current_python_venv = PurePath(sys.prefix).name
     if current_python_venv == expected_python_venv:
         print("true", end="")
@@ -46,4 +46,20 @@ function deactivate_python_venv() {
     deactivate
 }
 
-create_python_venv
+function pylint_check() {
+    pylint "${CODE_DIR}"
+}
+
+function mypy_check() {
+    mypy "${CODE_DIR}"
+}
+
+function test() {
+    python3 -m unittest discover "${CODE_DIR}"
+}
+
+function verify() {
+    pylint_check && mypy_check && test
+}
+
+create_python_venv > /dev/null
