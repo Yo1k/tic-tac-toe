@@ -218,7 +218,7 @@ class Logic:
             action = self.__action_queues[player_idx].pop()
             if action is None:
                 break
-            if action.surrender is True:
+            elif action.surrender is True:
                 Logic.__surrender(state)
             elif action.occupy is not None:
                 Logic.__occupy(state, action.occupy)
