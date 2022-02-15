@@ -190,6 +190,20 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=0)
         self.assertEqual(expected_state, state)
 
+    def test_advance__stop_at__phase_change(self) -> None:
+        state = _new_state()
+        expected_required_ready = set(range(len(state.players)))
+        Logic((
+                ListActionQueue([Action.new_surrender(), Action.new_occupy(Cell(0, 0))]),
+                ListActionQueue([]))) \
+            .advance(state)
+        expected_state = _new_state(
+                player_o=_new_player(mark=Mark.O, wins=1),
+                board=Board([[None, None, None], [None, None, None], [None, None, None]]),
+                phase=Phase.OUTROUND,
+                required_ready=expected_required_ready)
+        self.assertEqual(expected_state, state)
+
 
 class LogicMultipleActionsTest(unittest.TestCase):
     def test_win(self) -> None:
