@@ -12,14 +12,26 @@ class Mark(Enum):
 
 
 @eq
+class PlayerID:
+    def __init__(self, idx: int):
+        self.idx: int = idx
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"idx={self.idx})")
+
+
+@eq
 class Player:
-    def __init__(self, mark: Mark):
+    def __init__(self, mark: Mark, id_: PlayerID):
         self.mark: Mark = mark
+        self.id: PlayerID = id_
         self.wins: int = 0
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"mark={self.mark},"
+                f"id={self.id},"
                 f"wins={self.wins})")
 
 
@@ -100,21 +112,24 @@ class State:
         self.game_rounds: int = game_rounds
         assert len(players) == State.const_player_count(), \
             f"{len(players)}, {State.const_player_count()}"
+        for (idx, player) in enumerate(players):
+            assert player.id.idx == idx
         self.players: Sequence[Player] = players
         self.board: Board = board
         self.phase: Phase = phase
         self.round: int = round_
         self.step: int = step
-        self.required_ready: set[int] \
-            = set(range(len(players))) if required_ready is None else required_ready
+        self.required_ready: set[PlayerID] \
+            = set(player.id for player in players) if required_ready is None \
+            else required_ready
 
-    def turn(self) -> int:
-        """Returns `turn` - the index of the current `Player` in `State.players`.
+    def turn(self) -> PlayerID:
+        """Returns `turn` - the id of the current `Player` in the `State.players`.
 
-        `turn` is calculated in such a way as to alternate players order in different
-        `round` while keeping the same `Player` index in the `State.players`.
+        `turn` is calculated in such a way as to alternate players order in the different
+        `round`.
         """
-        return (self.step + self.round) % len(self.players)
+        return PlayerID((self.step + self.round) % len(self.players))
 
     @staticmethod
     def const_player_count() -> int:
@@ -203,17 +218,17 @@ class Logic:
             assert False
 
     def __advance_beginning_outround(self, state: State) -> None:
-        for player_idx in state.required_ready.copy():
-            action = self.__action_queues[player_idx].pop()
+        for player_id in state.required_ready.copy():
+            action = self.__action_queues[player_id.idx].pop()
             if action is None:
                 pass
             elif action.ready is True:
-                Logic.__ready(state, player_idx)
+                Logic.__ready(state, player_id)
             else:
                 assert False
 
     def __advance_inround(self, state: State) -> None:
-        action = self.__action_queues[state.turn()].pop()
+        action = self.__action_queues[state.turn().idx].pop()
         if action is None:
             pass
         elif action.surrender is True:
@@ -226,7 +241,7 @@ class Logic:
     @staticmethod
     def __occupy(state: State, cell: Cell) -> None:
         assert state.phase is Phase.INROUND
-        state.board.set(cell, state.players[state.turn()].mark)
+        state.board.set(cell, state.players[state.turn().idx].mark)
         if Logic.win_condition(state.board, cell):
             Logic.__win(state)
         elif Logic.__last_step(state.step, state.board):
@@ -265,13 +280,13 @@ class Logic:
         assert state.phase is Phase.INROUND
         # for more players this method would have been implemented quite differently
         assert State.const_player_count() == 2
-        idx_other_player = (state.turn() + 1) % len(state.players)
+        idx_other_player = (state.turn().idx + 1) % len(state.players)
         state.players[idx_other_player].wins += 1
         Logic.__end_round(state)
 
     @staticmethod
     def __win(state: State) -> None:
-        state.players[state.turn()].wins += 1
+        state.players[state.turn().idx].wins += 1
         Logic.__end_round(state)
 
     @staticmethod
@@ -279,9 +294,9 @@ class Logic:
         Logic.__end_round(state)
 
     @staticmethod
-    def __ready(state: State, player_idx: int) -> None:
+    def __ready(state: State, player_id: PlayerID) -> None:
         assert state.phase is Phase.BEGINNING or state.phase is Phase.OUTROUND
-        state.required_ready.remove(player_idx)
+        state.required_ready.remove(player_id)
         if len(state.required_ready) == 0:
             if state.phase is Phase.OUTROUND:
                 state.step = 0
@@ -296,7 +311,7 @@ class Logic:
     @staticmethod
     def __end_round(state: State) -> None:
         state.phase = Phase.OUTROUND
-        state.required_ready.update(range(len(state.players)))
+        state.required_ready.update(set(player.id for player in state.players))
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
