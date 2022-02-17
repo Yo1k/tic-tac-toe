@@ -195,7 +195,7 @@ class LogicSingleActionTest(unittest.TestCase):
 
     def test_advance__stop_at_phase_change(self) -> None:
         state = _new_state()
-        expected_required_ready = set(range(len(state.players)))
+        expected_required_ready = set(player.id for player in state.players)
         act_queue_px = ListActionQueue(
                 [Action.new_surrender(), Action.new_occupy(Cell(0, 0))])
         Logic((
@@ -203,7 +203,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
-                player_o=_new_player(mark=Mark.O, wins=1),
+                player_o=_new_player(mark=Mark.O, id_=PlayerID(1), wins=1),
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.OUTROUND,
                 required_ready=expected_required_ready)

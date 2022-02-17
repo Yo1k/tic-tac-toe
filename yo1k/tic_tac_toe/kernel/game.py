@@ -108,7 +108,7 @@ class State:
             phase: Phase = Phase.BEGINNING,
             round_: int = 0,
             step: int = 0,
-            required_ready: Optional[set[int]] = None):
+            required_ready: Optional[set[PlayerID]] = None):
         self.game_rounds: int = game_rounds
         assert len(players) == State.const_player_count(), \
             f"{len(players)}, {State.const_player_count()}"
@@ -126,8 +126,8 @@ class State:
     def turn(self) -> PlayerID:
         """Returns `turn` - the id of the current `Player` in the `State.players`.
 
-        `turn` is calculated in such a way as to alternate players order in the different
-        `round`.
+        `turn` is calculated in such a way as to alternate players order
+         in the different `round`.
         """
         return PlayerID((self.step + self.round) % len(self.players))
 
@@ -228,9 +228,9 @@ class Logic:
                 assert False
 
     def __advance_inround(self, state: State) -> None:
-        player_idx = state.turn().idx
+        player_id = state.turn()
         while True:
-            action = self.__action_queues[player_idx].pop()
+            action = self.__action_queues[player_id.idx].pop()
             if action is None:
                 break
             elif action.surrender is True:
@@ -239,7 +239,7 @@ class Logic:
                 Logic.__occupy(state, action.occupy)
             else:
                 assert False
-            if player_idx != state.turn().idx or state.phase is not Phase.INROUND:
+            if player_id != state.turn() or state.phase is not Phase.INROUND:
                 break
 
     @staticmethod
