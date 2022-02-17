@@ -228,15 +228,19 @@ class Logic:
                 assert False
 
     def __advance_inround(self, state: State) -> None:
-        action = self.__action_queues[state.turn().idx].pop()
-        if action is None:
-            pass
-        elif action.surrender is True:
-            Logic.__surrender(state)
-        elif action.occupy is not None:
-            Logic.__occupy(state, action.occupy)
-        else:
-            assert False
+        player_idx = state.turn().idx
+        while True:
+            action = self.__action_queues[player_idx].pop()
+            if action is None:
+                break
+            elif action.surrender is True:
+                Logic.__surrender(state)
+            elif action.occupy is not None:
+                Logic.__occupy(state, action.occupy)
+            else:
+                assert False
+            if player_idx != state.turn().idx or state.phase is not Phase.INROUND:
+                break
 
     @staticmethod
     def __occupy(state: State, cell: Cell) -> None:
