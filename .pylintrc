@@ -94,7 +94,9 @@ disable=raw-checker-failed,
         C0116,
         design,
         # no-else-return
-        R1705
+        R1705,
+        # no-else-break
+        R1723
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -262,6 +264,7 @@ good-names=i,
            y,
            eq,
            ex,
+           id,
            Run,
            _
 
