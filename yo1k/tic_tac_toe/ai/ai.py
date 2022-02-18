@@ -3,17 +3,17 @@ from random import choice
 from yo1k.tic_tac_toe.kernel.game import (
     ActionQueue,
     Action,
-    Player,
+    PlayerID,
     State,
     Phase,
     Cell)
 
 
 class Random:
-    def __init__(self, player: Player, state: State, seed: int):
-        self.player = player
+    def __init__(self, player_id: PlayerID, state: State):
+        self.player_id = player_id
         self.state = state
-        self.seed = seed
+        # self.seed = seed
         self.act_queue = []
 
     def act(self):
@@ -26,8 +26,7 @@ class Random:
             assert False
 
     def act_beginning_outround(self):
-        player_idx = self.state.turn()
-        if player_idx in self.state.required_ready:
+        if self.player_id in self.state.required_ready:
             self.act_queue.append(Action.new_ready())
 
     def act_inround(self):
@@ -39,10 +38,13 @@ class Random:
         self.act_queue.append(Action.new_occupy(choice(empty_cells)))
 
 
-class ActionQueueRandom(ActionQueue):
+class RandomActionQueue(ActionQueue):
     def __init__(self, random_ai: Random):
         self.random_ai = random_ai
 
     def pop(self) -> Optional[Action]:
         self.random_ai.act()
-        return self.random_ai.act_queue.pop()
+        if len(self.random_ai.act_queue) == 0:
+            return None
+        else:
+            return self.random_ai.act_queue.pop()
