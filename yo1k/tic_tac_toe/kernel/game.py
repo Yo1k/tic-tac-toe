@@ -23,15 +23,15 @@ class PlayerID:
 
 @eq
 class Player:
-    def __init__(self, mark: Mark, id_: PlayerID):
-        self.mark: Mark = mark
+    def __init__(self, id_: PlayerID, mark: Mark):
         self.id: PlayerID = id_
+        self.mark: Mark = mark
         self.wins: int = 0
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
-                f"mark={self.mark},"
                 f"id={self.id},"
+                f"mark={self.mark},"
                 f"wins={self.wins})")
 
 
@@ -124,10 +124,9 @@ class State:
             else required_ready
 
     def turn(self) -> PlayerID:
-        """Returns `turn` - the id of the current `Player` in the `State.players`.
+        """Returns `turn` - the `id` of the current `Player` in the `State.players`.
 
-        `turn` is calculated in such a way as to alternate players order
-         in the different `round`.
+        `turn` is calculated in such a way as to alternate players order in different rounds.
         """
         return PlayerID((self.step + self.round) % len(self.players))
 
