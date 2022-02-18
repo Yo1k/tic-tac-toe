@@ -113,7 +113,7 @@ class State:
         assert len(players) == State.const_player_count(), \
             f"{len(players)}, {State.const_player_count()}"
         for (idx, player) in enumerate(players):
-            assert player.id.idx == idx
+            assert player.id.idx == idx, f"{player.id.idx}, {idx}"
         self.players: Sequence[Player] = players
         self.board: Board = board
         self.phase: Phase = phase
@@ -194,6 +194,10 @@ class Action:
 
 class ActionQueue(ABC):
     @abstractmethod
+    def player_id(self) -> PlayerID:
+        pass
+
+    @abstractmethod
     def pop(self) -> Optional[Action]:
         pass
 
@@ -205,6 +209,8 @@ class Logic:
         """Indexes in `action_queues` correspond to indexes in `State.players`."""
         assert len(action_queues) == State.const_player_count(), \
             f"{len(action_queues)}, {State.const_player_count()}"
+        for (idx, action_queue) in enumerate(action_queues):
+            assert action_queue.player_id().idx == idx, f"{action_queue.player_id().idx}, {idx}"
         self.__action_queues: Sequence[ActionQueue] = action_queues
 
     def advance(self, state: State) -> None:

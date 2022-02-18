@@ -15,9 +15,13 @@ from yo1k.tic_tac_toe.kernel.game import (
 
 
 class ListActionQueue(ActionQueue):
-    def __init__(self, actions: MutableSequence[Optional[Action]]):
+    def __init__(self, player_id: PlayerID, actions: MutableSequence[Optional[Action]]):
+        self._player_id: PlayerID = player_id
         self.actions: MutableSequence[Optional[Action]] = actions
         self.actions.reverse()
+
+    def player_id(self) -> PlayerID:
+        return self._player_id
 
     def pop(self) -> Optional[Action]:
         if len(self.actions) == 0:
@@ -54,7 +58,7 @@ class LogicSingleActionTest(unittest.TestCase):
     def test_advance__no_action(self) -> None:
         state = _new_state(board=Board([
                 [None, None, None], [None, None, Mark.X], [None, None, None]]))
-        Logic((ListActionQueue([]), ListActionQueue([]))).advance(state)
+        Logic((ListActionQueue(PlayerID(0), []), ListActionQueue(PlayerID(1), []))).advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]))
         self.assertEqual(expected_state, state)
@@ -62,8 +66,8 @@ class LogicSingleActionTest(unittest.TestCase):
     def test_advance__occupy_action(self) -> None:
         state = _new_state()
         Logic((
-                ListActionQueue([Action.new_occupy(Cell(1, 2))]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_occupy(Cell(1, 2))]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, Mark.X], [None, None, None]]),
@@ -74,8 +78,8 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         expected_required_ready = set(player.id for player in state.players)
         Logic((
-                ListActionQueue([Action.new_surrender()]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_surrender()]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 player_o=_new_player(id_=PlayerID(1), mark=Mark.O, wins=1),
@@ -122,8 +126,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=4)
         expected_required_ready = set(player.id for player in state.players)
         Logic((
-                ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_occupy(Cell(2, 2))]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(id_=PlayerID(0), mark=Mark.X, wins=1),
@@ -142,8 +146,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=8)
         expected_required_ready = set(player.id for player in state.players)
         Logic((
-                ListActionQueue([Action.new_occupy(Cell(2, 2))]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_occupy(Cell(2, 2))]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_board_cells: Sequence[MutableSequence[Optional[Mark]]] = [
                 [Mark.O, Mark.X, Mark.O],
@@ -168,8 +172,8 @@ class LogicSingleActionTest(unittest.TestCase):
                 step=6,
                 required_ready={player_x.id})
         Logic((
-                ListActionQueue([Action.new_ready()]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_ready()]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 player_x=_new_player(id_=PlayerID(0), mark=Mark.X, wins=1),
@@ -183,8 +187,8 @@ class LogicSingleActionTest(unittest.TestCase):
         player_x = _new_player(id_=PlayerID(0), mark=Mark.X, wins=0)
         state = _new_state(phase=Phase.BEGINNING, required_ready={player_x.id})
         Logic((
-                ListActionQueue([Action.new_ready()]),
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(0), [Action.new_ready()]),
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
@@ -197,10 +201,11 @@ class LogicSingleActionTest(unittest.TestCase):
         state = _new_state()
         expected_required_ready = set(player.id for player in state.players)
         act_queue_px = ListActionQueue(
+                PlayerID(0),
                 [Action.new_surrender(), Action.new_occupy(Cell(0, 0))])
         Logic((
                 act_queue_px,
-                ListActionQueue([]))) \
+                ListActionQueue(PlayerID(1), []))) \
             .advance(state)
         expected_state = _new_state(
                 player_o=_new_player(id_=PlayerID(1), mark=Mark.O, wins=1),
@@ -219,7 +224,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 phase=Phase.BEGINNING,
                 required_ready={player_x.id, player_y.id})
         expected_required_ready = set(player.id for player in state.players)
-        act_queue_px = ListActionQueue([
+        act_queue_px = ListActionQueue(PlayerID(0), [
                 None,
                 None,
                 Action.new_ready(),
@@ -228,7 +233,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 Action.new_occupy(Cell(0, 0)),
                 Action.new_occupy(Cell(0, 2)),
                 Action.new_occupy(Cell(2, 0))])
-        act_queue_po = ListActionQueue([
+        act_queue_po = ListActionQueue(PlayerID(1), [
                 Action.new_ready(),
                 Action.new_occupy(Cell(1, 2)),
                 Action.new_occupy(Cell(2, 2)),
@@ -253,12 +258,12 @@ class LogicMultipleActionsTest(unittest.TestCase):
     def test_draw(self) -> None:
         state = _new_state(phase=Phase.INROUND, round_=1)
         expected_required_ready = set(player.id for player in state.players)
-        act_queue_px = ListActionQueue([
+        act_queue_px = ListActionQueue(PlayerID(0), [
                 Action.new_occupy(Cell(0, 0)),
                 Action.new_occupy(Cell(1, 0)),
                 Action.new_occupy(Cell(0, 2)),
                 Action.new_occupy(Cell(2, 1))])
-        act_queue_po = ListActionQueue([
+        act_queue_po = ListActionQueue(PlayerID(1), [
                 Action.new_occupy(Cell(1, 1)),
                 Action.new_occupy(Cell(1, 2)),
                 Action.new_occupy(Cell(2, 0)),
