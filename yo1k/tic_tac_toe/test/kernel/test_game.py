@@ -35,8 +35,8 @@ def _new_state(
         round_: int = 0,
         step: int = 0,
         required_ready: Optional[set[PlayerID]] = None) -> State:
-    player_x = Player(Mark.X, PlayerID(0)) if player_x is None else player_x
-    player_o = Player(Mark.O, PlayerID(1)) if player_o is None else player_o
+    player_x = Player(PlayerID(0), Mark.X) if player_x is None else player_x
+    player_o = Player(PlayerID(1), Mark.O) if player_o is None else player_o
     board = Board() if board is None else board
     required_ready = set() if required_ready is None else required_ready
     return State(
@@ -44,8 +44,8 @@ def _new_state(
             round_=round_, step=step, required_ready=required_ready)
 
 
-def _new_player(mark: Mark, id_: PlayerID, wins: int) -> Player:
-    player = Player(mark, id_)
+def _new_player(id_: PlayerID, mark: Mark, wins: int) -> Player:
+    player = Player(id_, mark)
     player.wins = wins
     return player
 
@@ -78,7 +78,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
-                player_o=_new_player(mark=Mark.O, id_=PlayerID(1), wins=1),
+                player_o=_new_player(id_=PlayerID(1), mark=Mark.O, wins=1),
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.OUTROUND,
                 required_ready=expected_required_ready)
@@ -126,7 +126,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
-                player_x=_new_player(mark=Mark.X, id_=PlayerID(0), wins=1),
+                player_x=_new_player(id_=PlayerID(0), mark=Mark.X, wins=1),
                 board=Board([[Mark.X, None, None], [Mark.O, Mark.X, Mark.O], [None, None, Mark.X]]),
                 step=4,
                 phase=Phase.OUTROUND,
@@ -157,7 +157,7 @@ class LogicSingleActionTest(unittest.TestCase):
         self.assertEqual(expected_state, state)
 
     def test_advance__ready_action__outround(self) -> None:
-        player_x = _new_player(mark=Mark.X, id_=PlayerID(0), wins=1)
+        player_x = _new_player(id_=PlayerID(0), mark=Mark.X, wins=1)
         state = _new_state(
                 player_x=player_x,
                 board=Board([
@@ -172,7 +172,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
-                player_x=_new_player(mark=Mark.X, id_=PlayerID(0), wins=1),
+                player_x=_new_player(id_=PlayerID(0), mark=Mark.X, wins=1),
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.INROUND,
                 round_=1,
@@ -180,7 +180,7 @@ class LogicSingleActionTest(unittest.TestCase):
         self.assertEqual(expected_state, state)
 
     def test_advance__ready_action__beginning(self) -> None:
-        player_x = _new_player(mark=Mark.X, id_=PlayerID(0), wins=0)
+        player_x = _new_player(id_=PlayerID(0), mark=Mark.X, wins=0)
         state = _new_state(phase=Phase.BEGINNING, required_ready={player_x.id})
         Logic((
                 ListActionQueue([Action.new_ready()]),
@@ -203,7 +203,7 @@ class LogicSingleActionTest(unittest.TestCase):
                 ListActionQueue([]))) \
             .advance(state)
         expected_state = _new_state(
-                player_o=_new_player(mark=Mark.O, id_=PlayerID(1), wins=1),
+                player_o=_new_player(id_=PlayerID(1), mark=Mark.O, wins=1),
                 board=Board([[None, None, None], [None, None, None], [None, None, None]]),
                 phase=Phase.OUTROUND,
                 required_ready=expected_required_ready)
@@ -213,8 +213,8 @@ class LogicSingleActionTest(unittest.TestCase):
 
 class LogicMultipleActionsTest(unittest.TestCase):
     def test_win(self) -> None:
-        player_x = _new_player(mark=Mark.X, id_=PlayerID(0), wins=0)
-        player_y = _new_player(mark=Mark.O, id_=PlayerID(1), wins=0)
+        player_x = _new_player(id_=PlayerID(0), mark=Mark.X, wins=0)
+        player_y = _new_player(id_=PlayerID(1), mark=Mark.O, wins=0)
         state = _new_state(
                 phase=Phase.BEGINNING,
                 required_ready={player_x.id, player_y.id})
@@ -242,7 +242,7 @@ class LogicMultipleActionsTest(unittest.TestCase):
                 [None, Mark.X, Mark.O],
                 [Mark.X, None, Mark.O]]
         expected_state = _new_state(
-                player_x=_new_player(mark=Mark.X, id_=PlayerID(0), wins=1),
+                player_x=_new_player(id_=PlayerID(0), mark=Mark.X, wins=1),
                 board=Board(expected_board_cells),
                 phase=Phase.OUTROUND,
                 round_=0,
