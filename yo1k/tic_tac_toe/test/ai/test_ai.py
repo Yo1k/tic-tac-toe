@@ -1,52 +1,34 @@
 import unittest
-from typing import Optional
-
-from yo1k.tic_tac_toe.kernel.game import (State, Player, Board, Phase, PlayerID, Mark, Logic)
-from yo1k.tic_tac_toe.ai.ai import Random, RandomActionQueue
-
-
-# def _new_state(
-#         game_rounds: int = 5,
-#         player_x: Optional[Player] = None,
-#         player_o: Optional[Player] = None,
-#         board: Optional[Board] = None,
-#         phase: Phase = Phase.INROUND,
-#         round_: int = 0,
-#         step: int = 0,
-#         required_ready: Optional[set[PlayerID]] = None) -> State:
-#     player_x = Player(Mark.X, PlayerID(0)) if player_x is None else player_x
-#     player_o = Player(Mark.O, PlayerID(1)) if player_o is None else player_o
-#     board = Board() if board is None else board
-#     required_ready = set() if required_ready is None else required_ready
-#     return State(
-#             game_rounds=game_rounds, players=(player_x, player_o), board=board, phase=phase,
-#             round_=round_, step=step, required_ready=required_ready)
+from yo1k.tic_tac_toe.kernel.game import (
+    State, Player, Board, PlayerID, Mark, Logic, World)
+from yo1k.tic_tac_toe.ai.ai import Random, AI
+from yo1k.tic_tac_toe.kernel.action_queue import DefaultActionQueue
+import timeout_decorator
+import time
 
 
 class RandomAITest(unittest.TestCase):
-    def test_something(self):
-        state = _new_state()
-        random_ai = Random(PlayerID(0), state)
-        act_queue_px = RandomActionQueue(random_ai)
-        self.assertEqual(True, False)
+    @timeout_decorator.timeout(0.3)
+    def test_play_against_itself(self):
+        player_x = Player(PlayerID(0), Mark.X)
+        player_o = Player(PlayerID(1), Mark.O)
+        state = State(
+                game_rounds=5,
+                board=Board(),
+                players=(player_x, player_o))
+        act_queue_px = DefaultActionQueue(state.players[0].id)
+        act_queue_po = DefaultActionQueue(state.players[1].id)
+        logic = Logic((act_queue_px, act_queue_po))
+        ai_x = AI(Random(player_x.id, act_queue_px))
+        ai_o = AI(Random(player_o.id, act_queue_po))
+        world = World(state, logic, (ai_x, ai_o))
+        start_runtime = time.time()
+        while state.round <= 1000:
+            world.advance()
+        stop_runtime = time.time()
+        print(f"Games lasted {(stop_runtime - start_runtime) * 1000} ms")
+        self.assertEqual(True, True)
 
 
 if __name__ == '__main__':
-    # unittest.main()
-    player_x = Player(PlayerID(0), Mark.X)
-    player_o = Player(PlayerID(1), Mark.O)
-    state = State(
-            game_rounds=5,
-            board=Board(),
-            players=(player_x, player_o))
-    random_ai_x = Random(player_x.id, state)
-    random_ai_o = Random(player_o.id, state)
-    act_queue_px = RandomActionQueue(random_ai_x)
-    act_queue_po = RandomActionQueue(random_ai_o)
-    logic = Logic((act_queue_px, act_queue_po))
-    while state.round <= 20:
-        logic.advance(state)
-        if state.phase is Phase.OUTROUND:
-            print(f"round {state.round}")
-            print(state.board)
-            print(f"pl_x: {state.players[0].wins}, pl_o: {state.players[1].wins}", end="\n\n")
+    unittest.main()
