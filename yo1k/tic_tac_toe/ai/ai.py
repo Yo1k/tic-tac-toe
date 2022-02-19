@@ -1,5 +1,5 @@
 from typing import Optional
-from random import choice
+from random import randrange
 from yo1k.tic_tac_toe.kernel.game import (
     ActionQueue,
     Action,
@@ -30,17 +30,23 @@ class Random:
             self.act_queue.append(Action.new_ready())
 
     def act_inround(self):
-        empty_cells = []
+        empty_cells_cnt = self.state.board.size() ** 2 - self.state.step
+        shift = randrange(empty_cells_cnt)
         for x in range(self.state.board.size()):
             for y in range(self.state.board.size()):
                 if self.state.board.get(Cell(x, y)) is None:
-                    empty_cells.append(Cell(x, y))
-        self.act_queue.append(Action.new_occupy(choice(empty_cells)))
+                    if shift == 0:
+                        self.act_queue.append(Action.new_occupy(Cell(x, y)))
+                        break
+                    shift -= 1
 
 
 class RandomActionQueue(ActionQueue):
     def __init__(self, random_ai: Random):
         self.random_ai = random_ai
+
+    def player_id(self) -> PlayerID:
+        return self.random_ai.player_id
 
     def pop(self) -> Optional[Action]:
         self.random_ai.act()

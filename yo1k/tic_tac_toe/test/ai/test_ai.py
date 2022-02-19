@@ -5,22 +5,22 @@ from yo1k.tic_tac_toe.kernel.game import (State, Player, Board, Phase, PlayerID,
 from yo1k.tic_tac_toe.ai.ai import Random, RandomActionQueue
 
 
-def _new_state(
-        game_rounds: int = 5,
-        player_x: Optional[Player] = None,
-        player_o: Optional[Player] = None,
-        board: Optional[Board] = None,
-        phase: Phase = Phase.INROUND,
-        round_: int = 0,
-        step: int = 0,
-        required_ready: Optional[set[PlayerID]] = None) -> State:
-    player_x = Player(Mark.X, PlayerID(0)) if player_x is None else player_x
-    player_o = Player(Mark.O, PlayerID(1)) if player_o is None else player_o
-    board = Board() if board is None else board
-    required_ready = set() if required_ready is None else required_ready
-    return State(
-            game_rounds=game_rounds, players=(player_x, player_o), board=board, phase=phase,
-            round_=round_, step=step, required_ready=required_ready)
+# def _new_state(
+#         game_rounds: int = 5,
+#         player_x: Optional[Player] = None,
+#         player_o: Optional[Player] = None,
+#         board: Optional[Board] = None,
+#         phase: Phase = Phase.INROUND,
+#         round_: int = 0,
+#         step: int = 0,
+#         required_ready: Optional[set[PlayerID]] = None) -> State:
+#     player_x = Player(Mark.X, PlayerID(0)) if player_x is None else player_x
+#     player_o = Player(Mark.O, PlayerID(1)) if player_o is None else player_o
+#     board = Board() if board is None else board
+#     required_ready = set() if required_ready is None else required_ready
+#     return State(
+#             game_rounds=game_rounds, players=(player_x, player_o), board=board, phase=phase,
+#             round_=round_, step=step, required_ready=required_ready)
 
 
 class RandomAITest(unittest.TestCase):
@@ -33,8 +33,8 @@ class RandomAITest(unittest.TestCase):
 
 if __name__ == '__main__':
     # unittest.main()
-    player_x = Player(Mark.X, PlayerID(0))
-    player_o = Player(Mark.O, PlayerID(1))
+    player_x = Player(PlayerID(0), Mark.X)
+    player_o = Player(PlayerID(1), Mark.O)
     state = State(
             game_rounds=5,
             board=Board(),
