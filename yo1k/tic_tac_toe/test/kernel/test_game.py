@@ -120,7 +120,7 @@ class LogicSingleActionTest(unittest.TestCase):
         for cells, cell, expect in args_and_expect_list:
             with self.subTest(expect=expect, cell=cell, cells=cells):
                 actual = Logic.win_condition(Board(cells), cell)  # type: ignore
-                self.assertEqual(actual, expect)
+                self.assertEqual(expect, actual)
 
     def test_advance__win(self) -> None:
         state = _new_state(

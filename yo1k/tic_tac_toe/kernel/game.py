@@ -71,7 +71,9 @@ class Board:
         return self.cells[cell.x][cell.y]
 
     def clear(self) -> None:
-        self.cells = Board.__empty_cells()
+        for x in range(self.size()):
+            for y in range(self.size()):
+                self.cells[x][y] = None
 
     def size(self) -> int:
         return len(self.cells)
@@ -232,6 +234,8 @@ class Logic:
         self.__action_queues: Sequence[ActionQueue] = action_queues
 
     def advance(self, state: State) -> None:
+        if Logic.is_game_over(state):
+            return
         if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
             self.__advance_beginning_outround(state)
@@ -338,20 +342,27 @@ class Logic:
     @staticmethod
     def __end_round(state: State) -> None:
         state.phase = Phase.OUTROUND
-        state.required_ready.update(set(player.id for player in state.players))
+        if not Logic.is_game_over(state):
+            state.required_ready.update(set(player.id for player in state.players))
+
+    @staticmethod
+    def is_game_over(state: State) -> bool:
+        return state.round == state.game_rounds - 1 and state.phase is Phase.OUTROUND
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
                 f"action_queues={self.__action_queues})")
 
 
-class World:
-    from yo1k.tic_tac_toe.ai.ai import AI
+class AI(ABC):
+    def act(self, state: State) -> None:
+        pass
 
+
+class World:
     def __init__(self, state: State, logic: Logic, ais: Sequence[AI]):
         self.__state: State = state
         self.__logic: Logic = logic
-        from yo1k.tic_tac_toe.ai.ai import AI
         self.__ais: Sequence[AI] = ais
 
     def advance(self) -> None:
