@@ -1,7 +1,6 @@
 import unittest
 import sys
 from random import randrange
-import time
 from yo1k.tic_tac_toe.kernel.game import (
     State, Player, Board, PlayerID, Mark, Logic, World)
 from yo1k.tic_tac_toe.ai.ai import RandomAI
@@ -10,8 +9,7 @@ from yo1k.tic_tac_toe.kernel.action_queue import DefaultActionQueue
 
 class RandomAITest(unittest.TestCase):
     def test_play_against_itself(self) -> None:
-        start_runtime = time.time()
-        for _ in range(1000):
+        for _ in range(100):
             ai_rng_seed_px = randrange(sys.maxsize)
             ai_rng_seed_po = randrange(sys.maxsize)
             player_x = Player(PlayerID(0), Mark.X)
@@ -33,8 +31,6 @@ class RandomAITest(unittest.TestCase):
                 world.advance()
             with self.subTest(ai_rng_seed_px=ai_rng_seed_px, ai_rng_seed_po=ai_rng_seed_po):
                 self.assertIs(True, logic.is_game_over(state))
-        stop_runtime = time.time()
-        print(f"The games lasted {(stop_runtime - start_runtime) * 1000: 0.0f} ms")
 
 
 if __name__ == '__main__':

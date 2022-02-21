@@ -29,6 +29,11 @@ class ListActionQueue(ActionQueue):
         else:
             return self.actions.pop()
 
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"player_id={self._player_id},"
+                f"reverse_actions={self.actions})")
+
 
 def _new_state(
         game_rounds: int = 5,

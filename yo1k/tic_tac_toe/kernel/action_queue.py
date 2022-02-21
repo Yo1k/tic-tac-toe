@@ -20,3 +20,8 @@ class DefaultActionQueue(ActionQueue):
             return None
         else:
             return self.actions.popleft()
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"player_id={self._player_id},"
+                f"actions={self.actions})")

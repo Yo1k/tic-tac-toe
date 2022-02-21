@@ -13,7 +13,7 @@ class RandomAI(AI):
     def __init__(self, player_id: PlayerID, seed: int, action_queue: DefaultActionQueue):
         self._player_id: PlayerID = player_id
         self._rng: Random = Random(seed)
-        self._act_queue: DefaultActionQueue = action_queue
+        self._action_queue: DefaultActionQueue = action_queue
 
     def act(self, state: State) -> None:
         if state.phase is Phase.BEGINNING \
@@ -26,7 +26,7 @@ class RandomAI(AI):
 
     def act_beginning_outround(self, state: State) -> None:
         if self._player_id in state.required_ready:
-            self._act_queue.add(Action.new_ready())
+            self._action_queue.add(Action.new_ready())
 
     def act_inround(self, state: State) -> None:
         if self._player_id != state.turn():
@@ -37,6 +37,11 @@ class RandomAI(AI):
             for y in range(state.board.size()):
                 if state.board.get(Cell(x, y)) is None:
                     if shift == 0:
-                        self._act_queue.add(Action.new_occupy(Cell(x, y)))
+                        self._action_queue.add(Action.new_occupy(Cell(x, y)))
                         return
                     shift -= 1
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"player_id={self._player_id},"
+                f"action_queue={self._action_queue})")
