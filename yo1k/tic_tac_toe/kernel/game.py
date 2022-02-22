@@ -255,7 +255,7 @@ class Logic:
     def __occupy(state: State, cell: Cell) -> None:
         assert state.phase is Phase.INROUND
         state.board.set(cell, state.players[state.turn().idx].mark)
-        if Logic.win_condition(state.board, cell):
+        if Logic.is_win(state.board, cell):
             Logic.__win(state)
         elif Logic.__last_step(state.step, state.board):
             Logic.__draw(state)
@@ -263,7 +263,7 @@ class Logic:
             state.step += 1
 
     @staticmethod
-    def win_condition(board: Board, last_occupied: Cell) -> bool:
+    def is_win(board: Board, last_occupied: Cell) -> bool:
         h_match = 0
         v_match = 0
         d1_match = 0

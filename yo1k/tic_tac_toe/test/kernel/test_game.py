@@ -124,7 +124,7 @@ class LogicSingleActionTest(unittest.TestCase):
                  Cell(0, 2), False)]
         for cells, cell, expect in args_and_expect_list:
             with self.subTest(expect=expect, cell=cell, cells=cells):
-                actual = Logic.win_condition(Board(cells), cell)  # type: ignore
+                actual = Logic.is_win(Board(cells), cell)  # type: ignore
                 self.assertEqual(expect, actual)
 
     def test_advance__win(self) -> None:

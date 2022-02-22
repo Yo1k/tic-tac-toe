@@ -11,37 +11,38 @@ from yo1k.tic_tac_toe.kernel.game import (
 
 class RandomAI(AI):
     def __init__(self, player_id: PlayerID, seed: int, action_queue: DefaultActionQueue):
-        self._player_id: PlayerID = player_id
-        self._rng: Random = Random(seed)
-        self._action_queue: DefaultActionQueue = action_queue
+        self.__player_id: PlayerID = player_id
+        self.__rng: Random = Random(seed)
+        self.__action_queue: DefaultActionQueue = action_queue
 
     def act(self, state: State) -> None:
         if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
-            self.act_beginning_outround(state)
+            self.__act_beginning_outround(state)
         elif state.phase is Phase.INROUND:
-            self.act_inround(state)
+            self.__act_inround(state)
         else:
             assert False
 
-    def act_beginning_outround(self, state: State) -> None:
-        if self._player_id in state.required_ready:
-            self._action_queue.add(Action.new_ready())
+    def __act_beginning_outround(self, state: State) -> None:
+        if self.__player_id in state.required_ready:
+            self.__action_queue.add(Action.new_ready())
 
-    def act_inround(self, state: State) -> None:
-        if self._player_id != state.turn():
+    def __act_inround(self, state: State) -> None:
+        if self.__player_id != state.turn():
             return
         empty_cells_cnt = state.board.size() ** 2 - state.step
-        shift = self._rng.randrange(empty_cells_cnt)
+        shift = self.__rng.randrange(empty_cells_cnt)
         for x in range(state.board.size()):
             for y in range(state.board.size()):
-                if state.board.get(Cell(x, y)) is None:
+                cell = Cell(x, y)
+                if state.board.get(cell) is None:
                     if shift == 0:
-                        self._action_queue.add(Action.new_occupy(Cell(x, y)))
+                        self.__action_queue.add(Action.new_occupy(cell))
                         return
                     shift -= 1
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
-                f"player_id={self._player_id},"
-                f"action_queue={self._action_queue})")
+                f"player_id={self.__player_id},"
+                f"action_queue={self.__action_queue})")
