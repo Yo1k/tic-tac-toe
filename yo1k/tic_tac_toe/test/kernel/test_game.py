@@ -29,6 +29,11 @@ class ListActionQueue(ActionQueue):
         else:
             return self.actions.pop()
 
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"player_id={self._player_id},"
+                f"reverse_actions={self.actions})")
+
 
 def _new_state(
         game_rounds: int = 5,
@@ -119,8 +124,8 @@ class LogicSingleActionTest(unittest.TestCase):
                  Cell(0, 2), False)]
         for cells, cell, expect in args_and_expect_list:
             with self.subTest(expect=expect, cell=cell, cells=cells):
-                actual = Logic.win_condition(Board(cells), cell)  # type: ignore
-                self.assertEqual(actual, expect)
+                actual = Logic.is_win(Board(cells), cell)  # type: ignore
+                self.assertEqual(expect, actual)
 
     def test_advance__win(self) -> None:
         state = _new_state(
