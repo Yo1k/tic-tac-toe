@@ -1,7 +1,7 @@
 import unittest
 from collections.abc import MutableSequence, Sequence
 from typing import Optional
-from yo1k.tic_tac_toe.kernel.game import (
+from yo1k.tic_tac_toe.game import (
     ActionQueue,
     Action,
     Phase,

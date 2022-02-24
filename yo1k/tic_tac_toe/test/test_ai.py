@@ -1,10 +1,9 @@
 import unittest
 import sys
 from random import randrange
-from yo1k.tic_tac_toe.kernel.game import (
-    State, Player, Board, PlayerID, Mark, Logic, World)
-from yo1k.tic_tac_toe.ai.ai import RandomAI
-from yo1k.tic_tac_toe.kernel.action_queue import DefaultActionQueue
+from yo1k.tic_tac_toe.game import (
+    State, Player, Board, PlayerID, Mark, Logic, World, DefaultActionQueue)
+from yo1k.tic_tac_toe.ai import RandomAI
 
 
 class RandomAITest(unittest.TestCase):

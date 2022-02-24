@@ -1,12 +1,12 @@
 from random import Random
-from yo1k.tic_tac_toe.kernel.action_queue import DefaultActionQueue
-from yo1k.tic_tac_toe.kernel.game import (
+from yo1k.tic_tac_toe.game import (
     Action,
     PlayerID,
     State,
     Phase,
     Cell,
-    AI)
+    AI,
+    DefaultActionQueue)
 
 
 class RandomAI(AI):

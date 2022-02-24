@@ -1,9 +1,10 @@
 from __future__ import annotations
+from collections import deque
+from collections.abc import Sequence, MutableSequence
 from enum import Enum, auto
 from typing import Optional
-from collections.abc import MutableSequence, Sequence
 from abc import ABC, abstractmethod
-from yo1k.tic_tac_toe.kernel.util import eq
+from yo1k.tic_tac_toe.util import eq
 
 
 class Mark(Enum):
@@ -202,6 +203,29 @@ class ActionQueue(ABC):
     @abstractmethod
     def pop(self) -> Optional[Action]:
         pass
+
+
+class DefaultActionQueue(ActionQueue):
+    def __init__(self, player_id: PlayerID) -> None:
+        self.__player_id = player_id
+        self.actions: deque[Action] = deque()
+
+    def add(self, action: Action) -> None:
+        self.actions.append(action)
+
+    def player_id(self) -> PlayerID:
+        return self.__player_id
+
+    def pop(self) -> Optional[Action]:
+        if len(self.actions) == 0:
+            return None
+        else:
+            return self.actions.popleft()
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__qualname__}("
+                f"player_id={self.__player_id},"
+                f"actions={self.actions})")
 
 
 class Logic:
