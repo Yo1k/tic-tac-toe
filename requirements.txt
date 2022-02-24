@@ -1,3 +1,4 @@
 # Specifies  all dependencies required by the application.
 
 numpy==1.21.2
+asciimatics==1.13.0
