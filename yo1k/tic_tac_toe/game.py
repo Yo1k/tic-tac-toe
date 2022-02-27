@@ -105,14 +105,14 @@ class State:
 
     def __init__(
             self,
-            game_rounds: int,
+            rounds: int,
             players: Sequence[Player],
             board: Board,
             phase: Phase = Phase.BEGINNING,
             round_: int = 0,
             step: int = 0,
             required_ready: Optional[set[PlayerID]] = None):
-        self.game_rounds: int = game_rounds
+        self.rounds: int = rounds
         assert len(players) == State.const_player_count(), \
             f"{len(players)}, {State.const_player_count()}"
         for (idx, player) in enumerate(players):
@@ -137,9 +137,13 @@ class State:
     def const_player_count() -> int:
         return 2
 
+    @staticmethod
+    def default_rounds() -> int:
+        return 5
+
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("
-                f"game_rounds={self.game_rounds},"
+                f"rounds={self.rounds},"
                 f"players={self.players},"
                 f"board={self.board},"
                 f"phase={self.phase},"
@@ -240,8 +244,6 @@ class Logic:
         self.__action_queues: Sequence[ActionQueue] = action_queues
 
     def advance(self, state: State) -> None:
-        if Logic.is_game_over(state):
-            return
         if state.phase is Phase.BEGINNING \
                 or state.phase is Phase.OUTROUND:
             self.__advance_beginning_outround(state)
@@ -256,6 +258,7 @@ class Logic:
             if action is None:
                 pass
             elif action.ready is True:
+                assert not Logic.is_game_over(state)
                 Logic.__ready(state, player_id)
             else:
                 assert False
@@ -266,12 +269,14 @@ class Logic:
             action = self.__action_queues[player_id.idx].pop()
             if action is None:
                 break
-            elif action.surrender is True:
-                Logic.__surrender(state)
-            elif action.occupy is not None:
-                Logic.__occupy(state, action.occupy)
             else:
-                assert False
+                assert not Logic.is_game_over(state)
+                if action.surrender is True:
+                    Logic.__surrender(state)
+                elif action.occupy is not None:
+                    Logic.__occupy(state, action.occupy)
+                else:
+                    assert False
             if player_id != state.turn() or state.phase is not Phase.INROUND:
                 break
 
@@ -353,7 +358,7 @@ class Logic:
 
     @staticmethod
     def is_game_over(state: State) -> bool:
-        return state.round == state.game_rounds - 1 and state.phase is Phase.OUTROUND
+        return state.round == state.rounds - 1 and state.phase is Phase.OUTROUND
 
     def __repr__(self) -> str:
         return (f"{type(self).__qualname__}("

@@ -16,7 +16,7 @@ class RandomAITest(unittest.TestCase):
             act_queue_px = DefaultActionQueue(player_x.id)
             act_queue_po = DefaultActionQueue(player_o.id)
             state = State(
-                    game_rounds=5,
+                    rounds=State.default_rounds(),
                     board=Board(),
                     players=(player_x, player_o))
             logic = Logic((act_queue_px, act_queue_po))
@@ -27,7 +27,7 @@ class RandomAITest(unittest.TestCase):
                             RandomAI(player_x.id, ai_rng_seed_px, act_queue_px),
                             RandomAI(player_o.id, ai_rng_seed_po, act_queue_po)
                     ))
-            enough_iterations = (state.board.size() ** 2 + 1) * state.game_rounds
+            enough_iterations = (state.board.size() ** 2 + 1) * state.rounds
             for _ in range(enough_iterations):
                 world.advance()
             with self.subTest(ai_rng_seed_px=ai_rng_seed_px, ai_rng_seed_po=ai_rng_seed_po):

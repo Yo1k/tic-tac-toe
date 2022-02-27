@@ -36,7 +36,7 @@ class ListActionQueue(ActionQueue):
 
 
 def _new_state(
-        game_rounds: int = 5,
+        rounds: int = State.default_rounds(),
         player_x: Optional[Player] = None,
         player_o: Optional[Player] = None,
         board: Optional[Board] = None,
@@ -49,7 +49,7 @@ def _new_state(
     board = Board() if board is None else board
     required_ready = set() if required_ready is None else required_ready
     return State(
-            game_rounds=game_rounds, players=(player_x, player_o), board=board, phase=phase,
+            rounds=rounds, players=(player_x, player_o), board=board, phase=phase,
             round_=round_, step=step, required_ready=required_ready)
 
 
