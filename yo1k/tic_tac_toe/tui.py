@@ -24,15 +24,31 @@ class GameInfoWidget(Widget):
         self.__state: State = state
 
     def update(self, frame_no):
-        (colour, attr, bg) = self._pick_colours("button")
+        # (colour, attr, bg) = self._pick_colours("button")
+        (colour, attr, bg) = (Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLACK)
         widget_text = f"round {self.__state.round + 1}/{self.__state.game_rounds}"
         self._frame.canvas.print_at(
-                widget_text,
+                " "*len(widget_text),
                 self._x + self._offset
                 + self.width // 2
                 - len(widget_text) // 2,
                 self._y,
                 colour, attr, bg)
+        self._frame.canvas.print_at(
+                widget_text,
+                self._x + self._offset
+                + self.width // 2
+                - len(widget_text) // 2,
+                self._y + 1,
+                colour, attr, bg)
+        self._frame.canvas.print_at(
+                " "*len(widget_text),
+                self._x + self._offset
+                + self.width // 2
+                - len(widget_text) // 2,
+                self._y + 2,
+                colour, attr, bg)
+        # self._frame.canvas.paint()
 
     def reset(self):
         pass
@@ -41,7 +57,7 @@ class GameInfoWidget(Widget):
         pass
 
     def required_height(self, offset, width):
-        return 2
+        return 3
 
     @property
     def value(self):
@@ -53,6 +69,13 @@ class GameInfoWidget(Widget):
     @value.setter
     def value(self, new_value):
         self._value = new_value
+
+    @property
+    def frame_update_count(self):
+        """
+        The number of frames before this Widget should be updated.
+        """
+        return 0
 
 
 class PlayerWidget(Widget):
@@ -94,25 +117,32 @@ class PlayerWidget(Widget):
     def value(self, new_value):
         self._value = new_value
 
+    @property
+    def frame_update_count(self):
+        """
+        The number of frames before this Widget should be updated.
+        """
+        return 1
+
 
 class CellWidget(Widget):
-    def __init__(self, state: State, cell: Cell):
+    def __init__(self, state: State, cell: Cell, action_queue: DefaultActionQueue):
         super().__init__(
                 name=f"{type(self).__qualname__}",
-                tab_stop=False)
+                tab_stop=True)
         self.__state: State = state
         self.__cell: Cell = cell
+        self.__action_queue = action_queue
 
     def required_height(self, offset, width):
         return 3
 
     def update(self, frame_no):
         (colour, attr, bg) = self._pick_colours("button")
+        widget_label = CellWidget.draw_mark(self.__state.board.get(self.__cell))
         self._frame.canvas.print_at(
-            f"{self.__state.board.get(self.__cell)}",
-            self._x + self._offset
-            + self.width // 2
-            - len(f"{self.__state.board.get(self.__cell)}") // 2,
+            widget_label,
+            self._x + self._offset + self.width // 2 - len(widget_label) // 2,
             self._y,
             colour, attr, bg)
 
@@ -120,11 +150,22 @@ class CellWidget(Widget):
         pass
 
     def process_event(self, event):
+        if isinstance(event, KeyboardEvent):
+            if event.key_code in [ord(" "), 10, 13]:
+                if self.__state.phase is Phase.INROUND \
+                        and self.__state.turn() == self.__action_queue.player_id():
+                    if self.__state.board.get(self.__cell) is None:
+                        self.__action_queue.add(Action.new_occupy(self.__cell))
+                return None
+            # Ignore any other key press.
+            return event
         if isinstance(event, MouseEvent):
             if event.buttons != 0 and self.is_mouse_over(event, include_label=False):
-                # self.__actions.add(Action.new_occupy(self.__cell))
+                if self.__state.phase is Phase.INROUND \
+                        and self.__state.turn() == self.__action_queue.player_id():
+                    if self.__state.board.get(self.__cell) is None:
+                        self.__action_queue.add(Action.new_occupy(self.__cell))
                 return None
-        # Ignore other events
         return event
 
     @property
@@ -138,10 +179,97 @@ class CellWidget(Widget):
     def value(self, new_value):
         self._value = new_value
 
+    @property
+    def frame_update_count(self):
+        """
+        The number of frames before this Widget should be updated.
+        """
+        return 1
+
+    @staticmethod
+    def draw_mark(mark: Optional[Mark]) -> str:
+        if mark is None:
+            return "[     ]"
+        elif mark == Mark.X:
+            return "[  X  ]"
+        elif mark == Mark.O:
+            return "[  O  ]"
+        else:
+            assert False
+
+
+class GoWidget(Widget):
+    def __init__(self, state: State, action_queue: DefaultActionQueue):
+        super().__init__(
+                name=f"{type(self).__qualname__}",
+                tab_stop=True)
+        self.__state: State = state
+        self.__action_queue = action_queue
+
+    def required_height(self, offset, width):
+        return 3
+
+    def update(self, frame_no):
+        (colour, attr, bg) = self._pick_colours("button")
+        if self.__action_queue.player_id() in self.__state.required_ready:
+            self._frame.canvas.print_at(
+                "ready?",
+                self._x + self._offset
+                + self.width // 2
+                - len("ready?") // 2,
+                self._y,
+                colour, attr, bg)
+        else:
+            self._frame.canvas.print_at(
+                    "in game",
+                    self._x + self._offset
+                    + self.width // 2
+                    - len("in game") // 2,
+                    self._y,
+                    colour, attr, bg)
+
+    def reset(self):
+        pass
+
+    def process_event(self, event):
+        if isinstance(event, KeyboardEvent):
+            if event.key_code in [ord(" "), 10, 13]:
+                if self.__state.phase is Phase.BEGINNING or self.__state.phase is Phase.OUTROUND:
+                    if self.__action_queue.player_id() in self.__state.required_ready:
+                        self.__action_queue.add(Action.new_ready())
+                return None
+            # Ignore any other key press.
+            return event
+        if isinstance(event, MouseEvent):
+            if event.buttons != 0 and self.is_mouse_over(event, include_label=False):
+                if self.__state.phase is Phase.BEGINNING or self.__state.phase is Phase.OUTROUND:
+                    if self.__action_queue.player_id() in self.__state.required_ready:
+                        self.__action_queue.add(Action.new_ready())
+                return None
+        return event
+
+    @property
+    def value(self):
+        """
+        The current value for this `CellWidget`.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        self._value = new_value
+
+    @property
+    def frame_update_count(self):
+        """
+        The number of frames before this Widget should be updated.
+        """
+        return 1
+
 
 class EventLoopEntryPoint(Widget):
     def __init__(self, world: World):
-        super().__init__(name="EventLoopEntryPoint")
+        super().__init__(name="EventLoopEntryPoint", tab_stop=False)
         self.__world = world
 
     def update(self, frame_no):
@@ -172,7 +300,7 @@ class EventLoopEntryPoint(Widget):
         """
         The number of frames before this Widget should be updated.
         """
-        return 20
+        return 1
 
 
 class GameView(Frame):
@@ -184,52 +312,50 @@ class GameView(Frame):
             world: World,):
         super().__init__(
                 screen,
-                screen.height,
-                screen.width,
+                # screen.height,
+                # screen.width,
+                height=40,
+                width=80,
                 hover_focus=True,
                 can_scroll=False,
                 title=f"{type(self).__qualname__}",
                 has_border=False)
-        self.state = state
-        self.action_queues = action_queues
+        self.__state = state
+        self.__action_queue = action_queues[0]
         self.world = world
 
         # SKTODO Create board more readable
         self.cells = [[
-                CellWidget(self.state, Cell(x, y))
-                for x in range(self.state.board.size())]
-                for y in range(self.state.board.size())]
-        # self.cells = []
-        # for x in range(self.state.board.size()):
-        #     for y in range(self.state.board.size()):
-        #         self.cells.append(CellButton(
-        #                 Cell(x, y),
-        #                 self.action_queue))
+                CellWidget(self.__state, Cell(x, y), self.__action_queue)
+                for x in range(self.__state.board.size())]
+                for y in range(self.__state.board.size())]
 
         layout_game_info = Layout([100], fill_frame=False)
         self.add_layout(layout_game_info)
-        layout_game_info.add_widget(GameInfoWidget(self.state))
+        layout_game_info.add_widget(GameInfoWidget(self.__state))
         layout_game_info.add_widget(Divider())
 
         layout = Layout([0.5, 0.1, 1, 1, 1, 0.1, 0.5], fill_frame=True)
         self.add_layout(layout)
-        layout.add_widget(PlayerWidget(self.state, PlayerID(0)), 0)
-        layout.add_widget(PlayerWidget(self.state, PlayerID(1)), 6)
+        layout.add_widget(PlayerWidget(self.__state, PlayerID(0)), 0)
         layout.add_widget(VerticalDivider(), 1)
         layout.add_widget(VerticalDivider(), 5)
+        layout.add_widget(PlayerWidget(self.__state, PlayerID(1)), 6)
+
         for x in range(2, 5):
             for y in range(2, 5):
                 layout.add_widget(self.cells[x - 2][y - 2], x)
 
-        layout2 = Layout([100])
-        self.add_layout(layout2)
+        layout_ready = Layout([100])
+        self.add_layout(layout_ready)
+        layout_ready.add_widget(GoWidget(self.__state, self.__action_queue), 0)
+
+        layout_entry_point = Layout([100])
+        self.add_layout(layout_entry_point)
         advance_loop = EventLoopEntryPoint(self.world)
-        layout2.add_widget(advance_loop)
+        layout_entry_point.add_widget(advance_loop)
 
         self.fix()
-
-
-renderer = FigletText(text="X", width=10)
 
 
 if __name__ == '__main__':
@@ -240,20 +366,18 @@ if __name__ == '__main__':
     act_queue_px = DefaultActionQueue(player_x.id)
     act_queue_po = DefaultActionQueue(player_o.id)
     g_state = State(
-            game_rounds=20,
+            game_rounds=10,
             board=Board(),
             players=(player_x, player_o))
     logic = Logic((act_queue_px, act_queue_po))
     g_world = World(
             g_state,
             logic,
-            (
-                    RandomAI(player_x.id, ai_rng_seed_px, act_queue_px),
+            [
                     RandomAI(player_o.id, ai_rng_seed_po, act_queue_po)
-            ))
+            ])
 
     last_scene = None
-
 
     def render_game_view(screen: Screen, scene: Scene):
         scenes = [Scene([GameView(screen, g_state, (act_queue_px, act_queue_po), g_world)], -1)]
